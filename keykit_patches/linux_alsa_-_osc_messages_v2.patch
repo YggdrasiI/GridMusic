@@ -1,0 +1,993 @@
+From b326b2b365d3d402c871a38e7e9cab025ec63434 Mon Sep 17 00:00:00 2001
+From: Olaf Schulz <yggtrash@googlemail.com>
+Date: Wed, 2 May 2012 10:39:22 +0200
+Subject: [PATCH 1/3] zweiter Versuch der Portierung von mdep2.c
+
+---
+ mdep/linux_alsa/mdep2.c |  439 ++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 416 insertions(+), 23 deletions(-)
+
+diff --git a/mdep/linux_alsa/mdep2.c b/mdep/linux_alsa/mdep2.c
+index 2f9a32c..06aa64d 100644
+--- a/mdep/linux_alsa/mdep2.c
++++ b/mdep/linux_alsa/mdep2.c
+@@ -48,24 +48,30 @@ struct termios Initterm;
+ #define TYPE_WRITE 2
+ #define TYPE_LISTEN 3
+ 
+-typedef int SOCKET;
+-#define SOCKADDR_IN struct sockaddr_in
+-#define PSOCKADDR struct sockaddr *
+-#define PHOSTENT struct hostent *
+-#define PSERVENT struct servent *
+-#define SOCKET int
+-#define SOCKET_ERROR (-1)
++typedef enum myport_type_t {
++	MYPORT_TCPIP_READ = 1,
++	MYPORT_TCPIP_WRITE = 2,
++	MYPORT_TCPIP_LISTEN = 3,
++	MYPORT_JOYSTICK = 4,
++	MYPORT_GESTURE = 5,
++	MYPORT_UDP_WRITE = 6,
++	MYPORT_UDP_LISTEN = 7,
++	MYPORT_OSC_WRITE = 8,
++	MYPORT_OSC_LISTEN = 9
++} myport_type_t;
+ 
+ struct myportinfo {
+-	char rw;	/* TYPE_READ or TYPE_WRITE */
+ 	char *name;
+-	SOCKET origsock;
++	myport_type_t myport_type;
++	char rw;
+ 	SOCKET sock;
+-	char sockstate;
++	SOCKET origsock;
++	SOCKADDR_IN sockaddr;
+ 	char portstate;
++	char sockstate;
+ 	char isopen;
+-	char checkit;
+ 	char closeme;
++	char checkit;
+ 	char hasreturnedfinaldata;
+ 	char *buff;	/* for stuff put on a socket that hasn't connected */
+ 	int buffsize;
+@@ -76,6 +82,16 @@ struct myportinfo {
+ 
+ typedef struct myportinfo Myport;
+ Myport *Topport = NULL;
++char *Myhostname = NULL;
++int NoWinsock = 1;
++typedef int SOCKET;
++#define SOCKADDR_IN struct sockaddr_in
++#define PSOCKADDR struct sockaddr *
++#define PHOSTENT struct hostent *
++#define PSERVENT struct servent *
++#define SOCKET int
++#define SOCKET_ERROR (-1)
++
+ 
+ static int Nextchar = NOCHAR;
+ static int Conseof = 0;
+@@ -1914,6 +1930,8 @@ tcpip_connect(char *name, char *servname)
+ 	return sock;
+ }
+ 
++/* in der nt-Variante ist das äquivalent
++ * tcpip_send, die sich im Aufbau etwas unterscheidet.*/
+ static int
+ tcpip_write(SOCKET sock,char *msg,int msgsize)
+ {
+@@ -1952,6 +1970,180 @@ tcpip_close(SOCKET sock)
+ 	close(sock);
+ 	return 0;
+ }
++ 
++static SOCKET
++udp_listen(char *hostname, char *servname)
++{
++	SOCKADDR_IN local_sin; /* Local socket */
++	PHOSTENT phe;  /* to get IP address */
++	SOCKET sock;
++	PSERVENT pse;
++	int r, i;
++
++	if ( servname==0 || *servname == 0 )
++		return INVALID_SOCKET;
++	if ( hostname==0 || *hostname == 0 )
++		return INVALID_SOCKET;
++
++	sock = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP);
++	if (sock == INVALID_SOCKET) {
++		sockerror(sock,"socket() failed in tcpip_listen()");
++		return INVALID_SOCKET;
++	}
++
++	local_sin.sin_family = PF_INET;
++	if ( isdigit(*servname) ) {
++		local_sin.sin_port = htons((u_short)atoi(servname));
++	}
++	else {
++		pse = getservbyname(servname, "udp");
++		if (pse == NULL) {
++			sockerror(sock,"getservbyname(%s) failed",servname);
++			return INVALID_SOCKET;
++		}
++		local_sin.sin_port = pse->s_port;
++	}
++	for ( i=0; i<8; i++ )
++			local_sin.sin_zero[i] = 0;
++
++	if ( isdigit(*hostname) ) {
++
++		unsigned long addr;
++
++		addr = inet_addr(hostname);
++		local_sin.sin_addr.s_addr = addr;
++
++#ifdef OLDSTUFF
++		phe = gethostbyaddr((const char *)(&addr),4,PF_INET);
++		if ( phe == NULL ) {
++			sockerror(sock,"gethostbyaddr() failed");
++			return INVALID_SOCKET;
++		}
++		memcpy((struct sockaddr FAR *) &local_sin.sin_addr,
++			*(char **)phe->h_addr_list, phe->h_length);
++#endif
++	}
++	else {
++		phe = gethostbyname(hostname);
++		if (phe == NULL) {
++			sockerror(sock,"gethostbyname() failed");
++			return INVALID_SOCKET;
++		}
++		memcpy((struct sockaddr FAR *) &local_sin.sin_addr,
++			*(char **)phe->h_addr_list, phe->h_length);
++	}
++
++  	if (bind( sock, (struct sockaddr FAR *) &local_sin, sizeof(local_sin)) == SOCKET_ERROR) {
++		sockerror(sock,"bind() failed");
++		return INVALID_SOCKET;
++	}
++
++	//r = WSAAsyncSelect(sock,Khwnd,WM_KEY_SOCKET, FD_CONNECT|FD_OOB|FD_ACCEPT|FD_READ|FD_WRITE|FD_CLOSE); 
++	fcntl(sock,F_SETFL,O_NONBLOCK);
++/*	if ( r == SOCKET_ERROR ) {
++	sockerror(sock,"WSAAsyncSelect() failed");
++		return INVALID_SOCKET;
++	}*/
++
++	return sock;
++}
++
++static SOCKET
++udp_connect(char *name, char *servname, SOCKADDR_IN * pdest_sin)
++{
++	PHOSTENT phe;
++	PSERVENT pse;
++	SOCKET sock;
++	int i;
++
++	/* See if the we know about the host (phe = Pointer Host Entity)*/
++
++	// keyerrfile("udp_connect start, name=%s servname=%s\n",name,servname);
++	phe = gethostbyname(name);
++	if (phe == NULL) {
++		eprint("Unknown host name: %s",name);
++		return INVALID_SOCKET;
++	}
++
++	/* THERE IS A BUG (well, to be kind, a difference) IN THE MS TCP/IP */
++	/* FOR WFW 3.11!!  The static area pointed to by gethostbyname() is */
++	/* overwritten by the getservbyname() call !!!!  Must use it right away.*/ 
++
++	/* Make up Destination Socket */
++	pdest_sin->sin_family = PF_INET;
++	memcpy((struct sockaddr FAR *) &(pdest_sin->sin_addr),
++			*(char **)phe->h_addr_list, phe->h_length);
++
++	/* Get the port # (pse - Pointer to Server Entity)*/
++	if ( isdigit(*servname) ) {
++		pdest_sin->sin_port = htons((u_short)atoi(servname));
++	}
++	else {
++		pse = getservbyname(servname, "udp");
++		if (pse == NULL) {
++			sockerror(INVALID_SOCKET,"getservbyname(\"%s\",\"udp\") failed!",
++				servname);
++			return INVALID_SOCKET;
++		}
++		pdest_sin->sin_port = pse->s_port;
++	}
++	for ( i=0; i<8; i++ )
++		pdest_sin->sin_zero[i] = 0;
++
++	sock = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP);
++	// keyerrfile("udp_connect socket=%ld\n",(long)sock);
++	if (sock == INVALID_SOCKET) {
++		sockerror(sock,"socket() failed");
++		return INVALID_SOCKET;
++	}
++
++// keyerrfile("udp_connect, returns sock=%ld\n",(long)sock);
++	return sock;
++}
++
++int
++udp_send(PORTHANDLE mp,char *msg,int msgsize)
++{
++	SOCKET sock = mp->sock;
++	int r;
++
++	// keyerrfile("udp_send msg=(%s) size=%d\n",msg,msgsize);
++	r = sendto(sock,msg,msgsize,0,(PSOCKADDR) &(mp->sockaddr),sizeof(SOCKADDR_IN));
++	// keyerrfile("sendto returns r=(%d)\n",r);
++	// tprint("udp sendto returns r=(%d)\n",r);
++	if ( r == SOCKET_ERROR ) {
++		sockerror(sock,"udp_send(): Error sending to socket.");
++		return -1;
++	}
++	return 0;
++}
++
++static int
++udp_recv(PORTHANDLE mp, char *buff, int buffsize)
++{
++	int r;
++	SOCKET sock = mp->sock;
++	SOCKADDR_IN src_sin;
++	int len;
++	int e;
++
++	errno = 0;
++	len = sizeof(src_sin);
++	r = recvfrom(sock,buff,buffsize,0,(PSOCKADDR) &src_sin,&len);
++	// keyerrfile("(udp_recv r=%d e=%d wsa=%d buff=%d,%d,%d,%d)",
++	// 	r,errno,WSAGetLastError(),buff[0],buff[1],buff[2],buff[3]);
++	buff[buffsize-1] = 0;
++
++	if ( r==0 )
++		return -1;	/* socket has closed, perhaps we should eof? */
++	if ( r == SOCKET_ERROR ) {
++		// keyerrfile("SOCKET ERROR: (udp_recv r=%d e=%d wsa=%d buff=%d,%d,%d,%d)\n",
++		// 	r,errno,e,buff[0],buff[1],buff[2],buff[3]);
++		sockerror(sock,"udp_recv() failed");
++		return -1;
++	}
++	return r;
++}
+ 
+ static Myport *
+ newmyport(char *name)
+@@ -2074,6 +2266,170 @@ mdep_openport(char *name, char *mode, char *type)
+ 
+ 		return handle;
+ 	}
++	if ( strcmp(type,"udp_send") == 0 ) {
++		char buff[BUFSIZ];
++		char *p;
++		SOCKET sock;
++		SOCKADDR_IN dest_sin;
++
++		// keyerrfile("udp_connect mode=(%s)\n",mode);
++		strcpy(buff,name);
++		p = strchr(buff,'@');
++		if ( p == NULL ) {
++			eprint("udp_connect name must contain a '@' !");
++			return NULL;
++		}
++		if ( strchr(mode,'w') == NULL ) {
++			eprint("mode on udp_connect must contain a 'w' !");
++			return NULL;
++		}
++		if ( strchr(mode,'r') != NULL ) {
++			eprint("mode on udp_connect can't contain a 'r' !");
++			return NULL;
++		}
++		*p++ = 0;
++		sock = udp_connect(p,buff,&dest_sin);
++		// keyerrfile("udp_connect sock=(%ld)\n",sock);
++		if ( sock == INVALID_SOCKET ) {
++			if ( *Debug != 0 )
++				eprint("udp_connect to p=%s buff=%s fails!?",p,buff);
++			return NULL;
++		}
++		handle[0] = (PORTHANDLE)0;
++
++		m1 = newmyport(name);
++		m1->rw = TYPE_WRITE;
++		m1->myport_type = MYPORT_UDP_WRITE;
++		m1->isopen = 1;
++		m1->closeme = 1;
++		m1->sock = sock;
++		m1->sockaddr = dest_sin;
++		m1->sockstate = SOCK_CONNECTED;
++		handle[1] = m1;
++
++		// keyerrfile("udp_connect returns handle\n");
++
++		return handle;
++	}
++	if ( strcmp(type,"udp_listen") == 0 ) {
++		char buff[BUFSIZ];
++		char *p;
++		SOCKET sock;
++
++		if ( strchr(mode,'w') != NULL ) {
++			eprint("mode on udp_listen can't contain a 'w' !");
++			return NULL;
++		}
++		strcpy(buff,name);
++		p = strchr(buff,'@');
++		if ( p == NULL ) {
++			eprint("udp_listen name must contain a '@' !");
++			return NULL;
++		}
++		*p++ = 0;
++		sock = udp_listen(p,buff);
++		if ( sock == INVALID_SOCKET ) {
++			eprint("udp_listen to name=%s fails!?",name);
++			return NULL;
++		}
++		// keyerrfile("udp_listen returned sock=%ld\n",(long)sock);
++		m0 = newmyport(name);
++		m0->rw = TYPE_LISTEN;
++		m0->myport_type = MYPORT_UDP_LISTEN;
++		m0->isopen = 1;
++		m0->closeme = 1;
++		m0->sock = sock;
++		m0->sockstate = SOCK_LISTENING;
++		handle[0] = m0;
++
++		handle[1] = (PORTHANDLE)0;
++
++		return handle;
++	}
++	if ( strcmp(type,"osc_send") == 0 ) {
++		char buff[BUFSIZ];
++		char *p;
++		SOCKET sock;
++		SOCKADDR_IN dest_sin;
++
++		// keyerrfile("osc_send mode=(%s)\n",mode);
++		strcpy(buff,name);
++		p = strchr(buff,'@');
++		if ( p == NULL ) {
++			eprint("osc_send name must contain a '@' !");
++			return NULL;
++		}
++		if ( strchr(mode,'w') == NULL ) {
++			eprint("mode on osc_send must contain a 'w' !");
++			return NULL;
++		}
++		if ( strchr(mode,'r') != NULL ) {
++			eprint("mode on osc_send can't contain a 'r' !");
++			return NULL;
++		}
++		*p++ = 0;
++		sock = udp_connect(p,buff,&dest_sin);
++		// keyerrfile("osc_send sock=(%ld)\n",sock);
++		if ( sock == INVALID_SOCKET ) {
++			if ( *Debug != 0 )
++				eprint("osc_send to p=%s buff=%s fails!?",p,buff);
++			return NULL;
++		}
++		handle[0] = (PORTHANDLE)0;
++
++		m1 = newmyport(name);
++		m1->rw = TYPE_WRITE;
++		m1->myport_type = MYPORT_OSC_WRITE;
++		m1->isopen = 1;
++		m1->closeme = 1;
++		m1->sock = sock;
++		m1->sockaddr = dest_sin;
++		m1->sockstate = SOCK_CONNECTED;
++		handle[1] = m1;
++
++		// keyerrfile("osc_send returns handle\n");
++
++		return handle;
++	}
++	if ( strcmp(type,"osc_listen") == 0 ) {
++		char buff[BUFSIZ];
++		char *p;
++		SOCKET sock;
++
++		if ( strchr(mode,'w') != NULL ) {
++			eprint("mode on osc_listen can't contain a 'w' !");
++			return NULL;
++		}
++		if ( strchr(mode,'A') == NULL ) {
++			eprint("mode on osc_listen must contain an 'A' !");
++			return NULL;
++		}
++		strcpy(buff,name);
++		p = strchr(buff,'@');
++		if ( p == NULL ) {
++			eprint("osc_listen name must contain a '@' !");
++			return NULL;
++		}
++		*p++ = 0;
++		sock = udp_listen(p,buff);
++		if ( sock == INVALID_SOCKET ) {
++			eprint("osc_listen to name=%s fails!?",name);
++			return NULL;
++		}
++		// keyerrfile("osc_listen returned sock=%ld\n",(long)sock);
++		m0 = newmyport(name);
++		m0->rw = TYPE_LISTEN;
++		m0->myport_type = MYPORT_OSC_LISTEN;
++		m0->isopen = 1;
++		m0->closeme = 1;
++		m0->sock = sock;
++		m0->sockstate = SOCK_LISTENING;
++		handle[0] = m0;
++
++		handle[1] = (PORTHANDLE)0;
++
++		return handle;
++	}
+ 	return NULL;
+ }
+ 
+@@ -2218,19 +2574,28 @@ mdep_putportdata(PORTHANDLE m, char *buff, int size)
+ {
+ 	int r;
+ 
+-	tcpip_checksock_connect(m);
+-	switch (m->sockstate) {
+-	case SOCK_LISTENING:
++	tcpip_checksock_connect(m);//wohin?! könnte auch sein, dass dies in den default-Bereich des ersten switchs gehört.
++	switch(m->myport_type){
++		case MYPORT_OSC_WRITE:
++			r = udp_send(m,buff,size);
++			break;
++		case MYPORT_UDP_WRITE:
++			r = udp_send(m,buff,size);
++			break;
++		default:
++			switch (m->sockstate) {
++				case SOCK_LISTENING:
+ #ifdef DEBUG
+-keyerrfile("mdep_putportdata using sockaway\n");
++					keyerrfile("mdep_putportdata using sockaway\n");
+ #endif
+-		sockaway(m,buff,size);	/* for delivery when it connects */
+-		r = size;
+-		break;
+-	case SOCK_UNCONNECTED:
+-	default:
+-		r = tcpip_write(m->sock,buff,size);
+-		break;
++					sockaway(m,buff,size);	/* for delivery when it connects */
++					r = size;
++					break;
++				case SOCK_UNCONNECTED:
++				default:
++					r = tcpip_write(m->sock,buff,size);
++					break;
++			}
+ 	}
+ 	return r;
+ }
+@@ -2267,7 +2632,34 @@ mdep_getportdata(PORTHANDLE *handle, char *buff, int buffsize, Datum *pd)
+ 		}
+ 
+ 		if ( m->portstate == PORT_CANREAD ) {
+-			if ( m->sockstate == SOCK_LISTENING ) {
++			if ( m->sockstate == SOCK_LISTENING
++					&& m->myport_type == MYPORT_OSC_LISTEN ) {
++
++				int cnt = 0;
++
++				while ( cnt++ < 4 ) {
++					errno = 0;
++					r = udp_recv(m,buff,buffsize);
++					/*if ( ! ( r<0 && WSAGetLastError()==WSAEFAULT ) ) {
++						break;
++					}*/
++					if ( r >= 0 ) break;//unclear...
++
++				}
++				// keyerrfile("udp_recv after loop r=%d, cnt=%d\n",r,cnt);
++				if ( r <= 0 ) {
++					continue;
++				}
++				*pd = osc_array(buff,r,0);
++			} else if ( m->sockstate == SOCK_LISTENING
++					&& m->myport_type == MYPORT_UDP_LISTEN ) {
++
++				// tprint("SHOULD BE READING UDP NOW!\n");
++				r = udp_recv(m,buff,buffsize);
++				if ( r < 0 ) {
++					r = 0;
++				}
++			} else if ( m->sockstate == SOCK_LISTENING ) {
+ 				PORTHANDLE *php;
+ 				if ( m->savem0==NULL || m->savem1==NULL ) {
+ 					tprint("Warning - got PORT_CANREAD when savem0/m1==NULL !?");
+@@ -2341,6 +2733,7 @@ mdep_closeport(PORTHANDLE m)
+ 					m2->sock = INVALID_SOCKET;
+ 				}
+ 			}
++			/* works for both tcp and udp */
+ 			tcpip_close(m->sock);
+ 			m->sock = INVALID_SOCKET;
+ 			if ( m->origsock != INVALID_SOCKET ) {
+-- 
+1.7.9.5
+
+
+From cfac48c12094508683468be64f7e74456d067455 Mon Sep 17 00:00:00 2001
+From: Olaf Schulz <yggtrash@googlemail.com>
+Date: Wed, 2 May 2012 13:12:40 +0200
+Subject: [PATCH 2/3] Sending of OSC messages run. Reciving fails.
+
+---
+ mdep/linux_alsa/makefile |    8 +--
+ mdep/linux_alsa/mdep.h   |    2 +
+ mdep/linux_alsa/mdep2.c  |  180 ++++++++++++++++++++++++++++++++++++++++++----
+ 3 files changed, 174 insertions(+), 16 deletions(-)
+
+diff --git a/mdep/linux_alsa/makefile b/mdep/linux_alsa/makefile
+index 5036ee6..2d17ade 100644
+--- a/mdep/linux_alsa/makefile
++++ b/mdep/linux_alsa/makefile
+@@ -31,11 +31,11 @@ CFLAGS = -O $(INC) $(PROFILE) -DDEMOTIMEOUT=$(DEMOTIMEOUT)
+ all : $(EXECS)
+ 
+ demo :
+-	del real.obj
+-	del sym.obj
++	rm real.obj
++	rm sym.obj
+ 	make DEMOTIMEOUT=10 install
+-	del real.obj
+-	del sym.obj
++	rm real.obj
++	rm sym.obj
+ 
+ install : all
+ 	cp $(KEY) $(BIN)/$(KEY)
+diff --git a/mdep/linux_alsa/mdep.h b/mdep/linux_alsa/mdep.h
+index 652a779..9695326 100644
+--- a/mdep/linux_alsa/mdep.h
++++ b/mdep/linux_alsa/mdep.h
+@@ -21,6 +21,8 @@
+ 
+ #define MDEP_MIDI_PROVIDED
+ 
++#define MDEP_OSC_SUPPORT
++
+ #define LINETRACK
+ #define MOVEBITMAP
+ 
+diff --git a/mdep/linux_alsa/mdep2.c b/mdep/linux_alsa/mdep2.c
+index 06aa64d..61692cf 100644
+--- a/mdep/linux_alsa/mdep2.c
++++ b/mdep/linux_alsa/mdep2.c
+@@ -7,6 +7,9 @@
+  */
+ 
+ #include "key.h"
++//#include "keydll.h"
++//#include "gesture.h"
++#include "d_util.h"
+ 
+ #include <termios.h>
+ #include <fcntl.h>
+@@ -21,6 +24,8 @@
+ #include <sys/socket.h>
+ #include <netinet/in.h>
+ #include <netdb.h>
++//for udp
++#include <arpa/inet.h> 
+ 
+ #define NOCHAR -2
+ 
+@@ -48,6 +53,19 @@ struct termios Initterm;
+ #define TYPE_WRITE 2
+ #define TYPE_LISTEN 3
+ 
++#define MDEP_OSC_SUPPORT
++
++#define SEPARATOR "\\"
++#define PALETTESIZE 256
++
++typedef int SOCKET;
++#define SOCKADDR_IN struct sockaddr_in
++#define PSOCKADDR struct sockaddr *
++#define PHOSTENT struct hostent *
++#define PSERVENT struct servent *
++#define SOCKET int
++#define SOCKET_ERROR (-1)
++
+ typedef enum myport_type_t {
+ 	MYPORT_TCPIP_READ = 1,
+ 	MYPORT_TCPIP_WRITE = 2,
+@@ -84,13 +102,6 @@ typedef struct myportinfo Myport;
+ Myport *Topport = NULL;
+ char *Myhostname = NULL;
+ int NoWinsock = 1;
+-typedef int SOCKET;
+-#define SOCKADDR_IN struct sockaddr_in
+-#define PSOCKADDR struct sockaddr *
+-#define PHOSTENT struct hostent *
+-#define PSERVENT struct servent *
+-#define SOCKET int
+-#define SOCKET_ERROR (-1)
+ 
+ 
+ static int Nextchar = NOCHAR;
+@@ -1971,6 +1982,7 @@ tcpip_close(SOCKET sock)
+ 	return 0;
+ }
+  
++
+ static SOCKET
+ udp_listen(char *hostname, char *servname)
+ {
+@@ -2019,7 +2031,7 @@ udp_listen(char *hostname, char *servname)
+ 			sockerror(sock,"gethostbyaddr() failed");
+ 			return INVALID_SOCKET;
+ 		}
+-		memcpy((struct sockaddr FAR *) &local_sin.sin_addr,
++		memcpy((struct sockaddr *) &local_sin.sin_addr,
+ 			*(char **)phe->h_addr_list, phe->h_length);
+ #endif
+ 	}
+@@ -2029,11 +2041,11 @@ udp_listen(char *hostname, char *servname)
+ 			sockerror(sock,"gethostbyname() failed");
+ 			return INVALID_SOCKET;
+ 		}
+-		memcpy((struct sockaddr FAR *) &local_sin.sin_addr,
++		memcpy((struct sockaddr *) &local_sin.sin_addr,
+ 			*(char **)phe->h_addr_list, phe->h_length);
+ 	}
+ 
+-  	if (bind( sock, (struct sockaddr FAR *) &local_sin, sizeof(local_sin)) == SOCKET_ERROR) {
++  	if (bind( sock, (struct sockaddr *) &local_sin, sizeof(local_sin)) == SOCKET_ERROR) {
+ 		sockerror(sock,"bind() failed");
+ 		return INVALID_SOCKET;
+ 	}
+@@ -2071,7 +2083,7 @@ udp_connect(char *name, char *servname, SOCKADDR_IN * pdest_sin)
+ 
+ 	/* Make up Destination Socket */
+ 	pdest_sin->sin_family = PF_INET;
+-	memcpy((struct sockaddr FAR *) &(pdest_sin->sin_addr),
++	memcpy((struct sockaddr *) &(pdest_sin->sin_addr),
+ 			*(char **)phe->h_addr_list, phe->h_length);
+ 
+ 	/* Get the port # (pse - Pointer to Server Entity)*/
+@@ -2347,6 +2359,7 @@ mdep_openport(char *name, char *mode, char *type)
+ 		return handle;
+ 	}
+ 	if ( strcmp(type,"osc_send") == 0 ) {
++tprint("mdep_openport called.");		
+ 		char buff[BUFSIZ];
+ 		char *p;
+ 		SOCKET sock;
+@@ -2439,10 +2452,147 @@ mdep_ctlport(PORTHANDLE m, char *cmd, char *arg)
+ 	return(Noval);
+ }
+ 
++//part from ../nt/midi.c
+ Datum
+ mdep_mdep(int argc)
+ {
+-	return(Noval);
++	//return(Noval);
++	
++	char *args[3];
++	int n;
++	Datum d;
++
++	d = Nullval;
++	/*
++	 * Things past the first 3 args might be integers
++	 */
++	for ( n=0; n<3 && n<argc; n++ ) {
++		Datum dd = ARG(n);
++		if ( dd.type == D_STR ) {
++			args[n] = needstr("mdep",dd);
++		} else {
++			args[n] = "";
++		}
++	}
++	for ( ; n<3; n++ )
++		args[n] = "";
++
++	/*
++	 * recognized commands are:
++	 * 		osc send file data
++	 */
++
++	if ( strcmp(args[0],"midi")==0 ){}
++	else if ( strcmp(args[0],"video") == 0 ){}
++	else if ( strcmp(args[0],"gesture") == 0 ){}
++	else if ( strcmp(args[0],"lcd") == 0 ){}
++	else if ( strcmp(args[0],"osc") == 0 ) {
++
++	    if ( strcmp(args[1],"send")==0 ) {
++		char buff[512];
++		int buffsize = sizeof(buff);
++		int sofar = 0;
++		char *tp;
++		int fnum = neednum("Expecting fifo number ",ARG(2));
++		Fifo *fptr;
++		Datum d3;
++
++		fptr = fifoptr(fnum);
++		if ( fptr == NULL )
++			execerror("No fifo numbered %d!?",fnum);
++
++		d3 = ARG(3);
++		if ( d3.type == D_ARR ) {
++			Htablep arr = d3.u.arr;
++			int cnt = 0;
++			Symbolp s;
++			int asize;
++			Datum dd;
++			char types[64];
++
++			/* First one is the message (e.g. "/foo") */
++			s = arraysym(arr,numdatum(0),H_LOOK);
++			if ( s == NULL )
++				execerror("First element of array not found?");
++			dd = *symdataptr(s);
++			if ( dd.type != D_STR )
++				execerror("First element of array must be string");
++			osc_pack_str(buff,buffsize,&sofar,dd.u.str);
++			tp = types;
++			*tp++ = ',';
++			cnt = 1;
++			asize = arrsize(arr);
++			for ( n=1; n<asize; n++ ) {
++				s = arraysym(arr,numdatum(n),H_LOOK);
++				dd = *symdataptr(s);
++				switch(dd.type){
++				case D_NUM:
++					*tp++ = 'i';
++					break;
++				case D_STR:
++					*tp++ = 's';
++					break;
++				case D_DBL:
++					*tp++ = 'f';
++					break;
++				default:
++					execerror("Can't handle type %s!",atypestr(d.type));
++				}
++				cnt++;
++			}
++			*tp = '\0';
++			osc_pack_str(buff,buffsize,&sofar,types);
++			for ( n=1; n<asize; n++ ) {
++				s = arraysym(arr,numdatum(n),H_LOOK);
++				dd = *symdataptr(s);
++				switch(dd.type){
++				case D_NUM:
++					osc_pack_int(buff,buffsize,&sofar,dd.u.val);
++					break;
++				case D_STR:
++					osc_pack_str(buff,buffsize,&sofar,dd.u.str);
++					break;
++				case D_DBL:
++					osc_pack_dbl(buff,buffsize,&sofar,dd.u.dbl);
++					break;
++				default:
++					execerror("Can't handle type %s!",atypestr(d.type));
++				}
++			}
++		} else {
++			for ( n=3; n<argc; n++ ) {
++				d = ARG(n);
++				if ( d.type == D_STR ) {
++					char *s = d.u.str;
++					int c;
++					while ( (c=*s++) != '\0' ) {
++						buff[sofar++] = c;
++					}
++				} else if ( d.type == D_NUM ) {
++					buff[sofar++] = (char)(numval(d));
++				} else {
++					execerror("Bad type of data given to osc send.");
++					
++				}
++			}
++		}
++	
++		udp_send(fptr->port,buff,sofar);
++		d = numdatum(0);
++	    }
++	}
++	else if ( strcmp(args[0],"tcpip")==0 ) {}
++	else if ( strcmp(args[0],"clipboard")==0 ){} 
++	else if ( strcmp(args[0],"sendinput")==0 ){} 
++	else if ( strcmp(args[0],"joystick")==0 ){}
++	else if ( strcmp(args[0],"priority")==0 ){} 
++	else if ( strcmp(args[0],"popen")==0 ){}
++	else {
++		/* unrecognized command */
++		eprint("Error: unrecognized mdep argument - %s\n",args[0]);
++	}
++	return d;
++
+ }
+ 
+ static void
+@@ -2751,3 +2901,9 @@ mdep_help(char *fname, char *keyword)
+ {
+ 	return(1);
+ }
++
++int
++my_ntohl(int v)
++{
++	  return ntohl(v);
++}
+-- 
+1.7.9.5
+
+
+From 89b2aed42cb5367b70a76a105e7edb3de85e89e5 Mon Sep 17 00:00:00 2001
+From: Olaf Schulz <yggtrash@googlemail.com>
+Date: Thu, 3 May 2012 17:17:01 +0200
+Subject: [PATCH 3/3] Osc messages works
+
+---
+ mdep/linux_alsa/mdep2.c |   43 ++++++++++++++++++++++++++++++-------------
+ 1 file changed, 30 insertions(+), 13 deletions(-)
+
+diff --git a/mdep/linux_alsa/mdep2.c b/mdep/linux_alsa/mdep2.c
+index 61692cf..2ee6a84 100644
+--- a/mdep/linux_alsa/mdep2.c
++++ b/mdep/linux_alsa/mdep2.c
+@@ -40,10 +40,8 @@ struct termios Initterm;
+ #define SOCK_UNCONNECTED 0
+ #define SOCK_CONNECTED 1
+ #define SOCK_CLOSED 2
+-#define SOCK_CANREAD 3
+-#define SOCK_LISTENING 4
+-#define SOCK_REFUSED 5
+-#define INVALID_SOCKET -1
++#define SOCK_LISTENING 3
++#define SOCK_REFUSED 4
+ 
+ #define PORT_NORMAL 0
+ #define PORT_CANREAD 1
+@@ -53,6 +51,8 @@ struct termios Initterm;
+ #define TYPE_WRITE 2
+ #define TYPE_LISTEN 3
+ 
++#define INVALID_SOCKET -1
++
+ #define MDEP_OSC_SUPPORT
+ 
+ #define SEPARATOR "\\"
+@@ -1996,10 +1996,11 @@ udp_listen(char *hostname, char *servname)
+ 		return INVALID_SOCKET;
+ 	if ( hostname==0 || *hostname == 0 )
+ 		return INVALID_SOCKET;
+-
++//olaf
++//	sock = socket(PF_INET, SOCK_DGRAM , 0);
+ 	sock = socket( PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+ 	if (sock == INVALID_SOCKET) {
+-		sockerror(sock,"socket() failed in tcpip_listen()");
++		sockerror(sock,"socket() failed in udp_listen()");
+ 		return INVALID_SOCKET;
+ 	}
+ 
+@@ -2142,8 +2143,8 @@ udp_recv(PORTHANDLE mp, char *buff, int buffsize)
+ 	errno = 0;
+ 	len = sizeof(src_sin);
+ 	r = recvfrom(sock,buff,buffsize,0,(PSOCKADDR) &src_sin,&len);
+-	// keyerrfile("(udp_recv r=%d e=%d wsa=%d buff=%d,%d,%d,%d)",
+-	// 	r,errno,WSAGetLastError(),buff[0],buff[1],buff[2],buff[3]);
++  //keyerrfile("(udp_recv r=%d e=%d buff=%d,%d,%d,%d)",
++	 //	r,errno,buff[0],buff[1],buff[2],buff[3]);
+ 	buff[buffsize-1] = 0;
+ 
+ 	if ( r==0 )
+@@ -2359,7 +2360,7 @@ mdep_openport(char *name, char *mode, char *type)
+ 		return handle;
+ 	}
+ 	if ( strcmp(type,"osc_send") == 0 ) {
+-tprint("mdep_openport called.");		
++//tprint("mdep_openport called.\n");		
+ 		char buff[BUFSIZ];
+ 		char *p;
+ 		SOCKET sock;
+@@ -2425,6 +2426,7 @@ tprint("mdep_openport called.");
+ 		}
+ 		*p++ = 0;
+ 		sock = udp_listen(p,buff);
++//tprint("osc_listen socket created.\n");		
+ 		if ( sock == INVALID_SOCKET ) {
+ 			eprint("osc_listen to name=%s fails!?",name);
+ 			return NULL;
+@@ -2668,11 +2670,13 @@ tcpip_checksock_accept(Myport *m)
+ 	int soleng = sizeof(int);
+ 	Myport *m2;
+ 
++//	tprint("udp/osc: CHECKSOCK ACCEPT\n");
+ 	if ( m->sockstate == SOCK_LISTENING ) {
+ 		SOCKADDR_IN sin;  /* accepted socket */
+ 		SOCKET s2;
+ 		int addrlen;
+ 
++//		tprint("udp/osc: SOCK LISTENING\n");
+ 		getsockopt(m->sock,SOL_SOCKET,SO_ERROR,&soerr,&soleng);
+ 		if ( soerr == ECONNREFUSED ) {
+ 			m->isopen = 0;
+@@ -2687,7 +2691,13 @@ tcpip_checksock_accept(Myport *m)
+ 			tcpip_close(m->sock);
+ 			m->sock = INVALID_SOCKET;
+ 		} else {
+-			doaccept(m->sock);
++			if(m->myport_type == MYPORT_TCPIP_LISTEN)
++				doaccept(m->sock);
++			if(m->myport_type == MYPORT_OSC_LISTEN || m->myport_type == MYPORT_UDP_LISTEN){
++//				tprint("udp/osc: Set PORT_CANREAD\n");
++				m->portstate = PORT_CANREAD;
++		 		m->checkit = 0;
++			}
+ 		}
+ 	}
+ }
+@@ -2695,6 +2705,7 @@ tcpip_checksock_accept(Myport *m)
+ static void
+ tcpip_checksock_connect(Myport *m)
+ {
++//tprint("checksock_connect.\n");	
+ 	int soerr = 0;
+ 	int soleng = sizeof(int);
+ 	Myport *m2;
+@@ -2774,21 +2785,26 @@ mdep_getportdata(PORTHANDLE *handle, char *buff, int buffsize, Datum *pd)
+ 			*handle = m;
+ 			return -2;
+ 		}
++		//tprint("Port open? %i\n",m->isopen);
+ 		if ( ! m->isopen )
+ 			continue;
++		//hier falsch
+ 		if ( m->rw == TYPE_LISTEN && m->checkit ) {
+-			tcpip_checksock_accept(m);
+-			m->checkit = 0;
++			//method set m->portstate to PORT_CANREAD for udp messages.
++				tcpip_checksock_accept(m);
++		//	m->checkit = 0;
+ 		}
+ 
+ 		if ( m->portstate == PORT_CANREAD ) {
+ 			if ( m->sockstate == SOCK_LISTENING
+ 					&& m->myport_type == MYPORT_OSC_LISTEN ) {
+ 
++				 //tprint("SHOULD BE READING OSC/UDP NOW!\n");
+ 				int cnt = 0;
+ 
+ 				while ( cnt++ < 4 ) {
+ 					errno = 0;
++					//tprint("udp_recv() called.!\n");
+ 					r = udp_recv(m,buff,buffsize);
+ 					/*if ( ! ( r<0 && WSAGetLastError()==WSAEFAULT ) ) {
+ 						break;
+@@ -2800,11 +2816,12 @@ mdep_getportdata(PORTHANDLE *handle, char *buff, int buffsize, Datum *pd)
+ 				if ( r <= 0 ) {
+ 					continue;
+ 				}
++				//tprint("osc_array() called.!\n");
+ 				*pd = osc_array(buff,r,0);
+ 			} else if ( m->sockstate == SOCK_LISTENING
+ 					&& m->myport_type == MYPORT_UDP_LISTEN ) {
+ 
+-				// tprint("SHOULD BE READING UDP NOW!\n");
++				 //tprint("SHOULD BE READING UDP NOW!\n");
+ 				r = udp_recv(m,buff,buffsize);
+ 				if ( r < 0 ) {
+ 					r = 0;
+-- 
+1.7.9.5
+

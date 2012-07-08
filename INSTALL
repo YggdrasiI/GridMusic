@@ -1,0 +1,43 @@
+
+The Software is written in the script language of Keykit and
+tested with version 7.7b. You can download executables and
+sources on http://nosuch.com/keykit/ .
+
+
+On Windows:
+• Install Keykit.
+• Clone the repository into [KEYKIT ROOT DIR]\contrib\kinect.
+• Add '#include contrib/kinect/kinect.k' to your keylocal.k
+  file or type this line manually into the terminal window in 
+	keykit.
+
+
+On Linux:
+It's nessesary to patch the code¹...
+• Download source code of keykit 7.7b and extract it.
+• Rename MAKEFILE to Makefile and src/MAKEFILE, too.
+• Make rmcr executable:
+    chmod +x mdep/stdio/rmcr 
+• Copy from this repository
+   Makefile.patch 
+   linux_alsa_-_osc_messages_v2.patch
+  into keykit's root directory and patch
+   patch -p1 < Makefile.patch
+	 patch -p1 < linux_alsa_-_osc_messages_v2.patch
+• Clean up and compile:
+	make clean_linux
+	make install_linux
+=> Executables are created in ./bin/ .
+• Add '#include contrib/kinect/kinect.k' to your keylocal.k
+  file or type this line manually into the terminal window in 
+	keykit.
+
+Hint:  Create ./keylocal.k to enable alsa output port on startup.
+	function keylocal(){
+			outalsa = outport(1)
+			mapport(0,outalsa) 
+	}
+Now, 'aconnect -i' shows an entry for keykit which can connect to a synthesiser.
+
+___________________________________________________________
+¹) http://groups.google.com/group/keykit/browse_thread/thread/afe7e03149f7aeb4
