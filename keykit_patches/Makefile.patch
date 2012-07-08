@@ -1,0 +1,62 @@
+diff --git a/Makefile b/Makefile
+index 00b72f1..a035c07 100644
+--- a/Makefile
++++ b/Makefile
+@@ -255,7 +255,7 @@ clean_nt :
+ 	cd ..
+ 
+ clobber_nt : clean_nt
+-	del /s *~
++	rm /s *~
+ 	cd src
+ 	$(MK) clobber
+ 	cd ..
+diff --git a/mdep/stdio/rmcr b/mdep/stdio/rmcr
+old mode 100644
+new mode 100755
+diff --git a/src/Makefile b/src/Makefile
+index faf877e..5825e04 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -120,13 +120,13 @@ demo :
+ 	rm -f sym.obj
+ 
+ install : all
+-	del ..\bin\key.exe
++	rm ..\bin\key.exe
+ 	cp key.exe ..\bin\key.exe
+-	del ..\bin\keydll.dll
++	rm ..\bin\keydll.dll
+ 	cp keydll.dll ..\bin\keydll.dll
+-	del ..\bin\PertelianLib.dll
++	rm ..\bin\PertelianLib.dll
+ 	cp PertelianLib.dll ..\bin\PertelianLib.dll
+-	del ..\bin\keylib.exe
++	rm ..\bin\keylib.exe
+ 	cp keylib.exe ..\bin\keylib.exe
+ 	cd ..\lib
+ 	..\bin\keylib.exe
+diff --git a/tests/makefile b/tests/makefile
+index 92d9e74..5c5d0a8 100644
+--- a/tests/makefile
++++ b/tests/makefile
+@@ -6,4 +6,4 @@ unixtest :
+ 	sh ./keytest.sh
+ 
+ clean :
+-	del *.out
++	rm *.out
+diff --git a/Makefile b/Makefile
+index a035c07..1534d8b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -593,7 +593,8 @@ copy_linux_alsa : bindir
+ 	chmod ugo+w */keylib.k
+ 	-$(RMCR) tests/*
+ 
+-LINUXBIN = /usr/local/bin
++#LINUXBIN = /usr/local/bin
++LINUXBIN = ./bin
+ 
+ install_linux install_Linux install_linux-gnu:
+ 	if [ -d byacc ] ; then cd byacc ; $(MK) -f makefile.sun clobber ; $(MK) -f makefile.sun ; fi
