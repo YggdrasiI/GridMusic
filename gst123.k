@@ -1,3 +1,7 @@
+# Needs to patch gst123 to get osc support.
+# http://groups.google.com/group/gst123/browse_thread/thread/49652f481af564b0
+
+
 GST123HOST = "127.0.0.1" 
 GST123PORT = 8877
 
