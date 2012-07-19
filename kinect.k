@@ -22,6 +22,8 @@
 #include contrib/GridMusic/oscplayer.k
 #include contrib/GridMusic/sender.k
 
+#include contrib/GridMusic/mysettings.k
+
 VERBOSE = 1 # print some debug messages
 OSCPORT = 3335
 GLOBALVOL = 80 
@@ -247,13 +249,20 @@ function looper(areas, kstore) {
 	kstore["looper"] = new looperobj(OSCPORT, areas)
 	KSTORE = kstore
 
-	while (1) {
-		c = Root.waitforconsolekey()
-		if ( ascii(c) == 27 ) {
-			break
+	if( LOWKEY ){
+		print("Press Ctrl+C to exit.")
+		while (1) {
+			sleeptill(Now+20b)
 		}
-		print("ignoring c=",c)
-		sleeptill(Now+2b)
+	}else{
+		while (1) {
+			c = Root.waitforconsolekey()
+			if ( ascii(c) == 27 ) {
+				break
+			}
+			print("ignoring c=",c)
+			sleeptill(Now+2b)
+		}
 	}
 
 	#clean up

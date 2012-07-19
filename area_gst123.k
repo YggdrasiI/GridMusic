@@ -59,7 +59,7 @@ class area_gst123{
 			$.player.pause(1)
 		}else{
 			$.playing = ix
-			verbose("start gst123")
+			verbose("start gst123 ", $.mfilenames[$.playing])
 			#well, this mess the playlist
 			$.player.add_track($.mfilenames[$.playing], 1, -1)
 

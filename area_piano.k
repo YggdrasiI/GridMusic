@@ -124,7 +124,7 @@ class area_piano{
 				unlock($)
 			}
 			#sleeptill(Now+10)
-			sleeptill(Now+1)
+			sleeptill(Now+20)
 		}
 	}
 

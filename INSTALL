@@ -26,7 +26,7 @@ It's nessesary to patch the code¹...
 	 patch -p1 < linux_alsa_-_osc_messages_v2.patch
 • Clean up and compile:
 	make clean_linux
-	make install_linux
+	make install_linux_alsa
 => Executables are created in ./bin/ .
 • Add '#include contrib/kinect/kinect.k' to your keylocal.k
   file or type this line manually into the terminal window in 
