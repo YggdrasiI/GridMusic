@@ -22,7 +22,7 @@
 #include contrib/GridMusic/oscplayer.k
 #include contrib/GridMusic/sender.k
 
-#include contrib/GridMusic/mysettings.k
+##include contrib/GridMusic/mysettings.k
 
 VERBOSE = 1 # print some debug messages
 OSCPORT = 3335
