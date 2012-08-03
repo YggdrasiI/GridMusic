@@ -24,7 +24,7 @@
 
 ##include contrib/GridMusic/mysettings.k
 
-VERBOSE = 1 # print some debug messages
+VERBOSE = 0 # print some debug messages
 OSCPORT = 3335
 GLOBALVOL = 80 
 
@@ -249,7 +249,7 @@ function looper(areas, kstore) {
 	kstore["looper"] = new looperobj(OSCPORT, areas)
 	KSTORE = kstore
 
-	if( LOWKEY ){
+	if( defined(LOWKEY) ){
 		print("Press Ctrl+C to exit.")
 		while (1) {
 			sleeptill(Now+20b)

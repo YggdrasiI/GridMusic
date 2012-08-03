@@ -91,7 +91,7 @@ class area_trumpet{
 						$.possible_notes[oin] = note
 						press = pressure(note) 
 						verbose("(trumpet) Change volume to",handid, inote, note.vol)
-						if(note.vol > 120)print("MAX!!!!!!")
+						#if(note.vol > 120)print("MAX!!!!!!")
 						realtime(press,Now)
 					}
 				}

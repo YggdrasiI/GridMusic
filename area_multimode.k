@@ -124,7 +124,7 @@ class area_multimode{
 	}
 
 	method multi_replace(){
-		print("Mode???!: ",$, $$, $.mode, $$.mode)
+		#print("Mode???!: ",$, $$, $.mode, $$.mode)
 		if( $.mode == 1 ){
 			verbose("Replace areas(2), Piano")
 			replace_areas = $$.piano_areas
@@ -157,7 +157,7 @@ class area_multimode{
 	}
 
 	method select_handler(areaid, handid, x,y,z){
-		print("Select handler of multimode", $, $$)
+		#print("Select handler of multimode", $, $$)
 		if( $.mode == 0 ){
 			verbose("Copy mode: Select")
 			if( $.copy_source > -1 ){
@@ -186,7 +186,7 @@ class area_multimode{
 			verbose("Record mode: Select")
 			verbose("   This should not be called.")
 		}else if( $.mode == 2 ){
-			print("Play mode: Select", $)
+			verbose("Play mode: Select", $)
 			phs = $$.playing_phrases
 			if( phs[areaid] == 1 ){
 				#stop playing
