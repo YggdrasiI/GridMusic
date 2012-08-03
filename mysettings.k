@@ -340,3 +340,40 @@ function settingGst2(loop){
 	return(areas)
 }
 
+function settingTest2(loop){
+
+	durations = [0=1b,1=4b,2=8b,3=8b,4=8b,5=8b]
+	durationsLong = [1=4b,2=8b,3=8b,4=16b,5=16b]
+	#3,2,2,3,2
+	newage1 = [0='co4', 1='e-o4', 2='fo4', 3='go4', 4='b-o4']
+	newage1Major = [0=major('c'), 1=major('e-'), 2=major('f'), 3=major('g'), 4=major('b-')]
+	newage2 = [0='e-', 1='f+', 2='g+', 3='a+', 4='c']
+	newage2Minor = [0=minor('e-'), 1=minor('f+'), 2=minor('g+'), 3=minor('a+'), 4=minor('c')]
+	
+	#piano_g = new area_piano([4=s2[4],1=s3[4],2=s4[4]],durations,50,128)
+	piano1 = new area_piano(newage1,durations,50,128)
+	piano2 = new area_piano(newage1,durationsLong,50,128)
+	piano4 = new area_piano(newage1Major,durations,50,128)
+	piano8 = new area_piano(newage2,durations,50,128)
+	piano9 = new area_piano(newage2Minor,durations,50,128)
+
+	trumpet = new area_trumpet(newage1,0,121)
+
+	#bpm_area = new area_bpm( 30, 190, 20, 1)
+	volume_area = new area_volume( 20, 127, 5)
+
+	kstore = []
+	switcher = new area_setting_switcher(kstore,SETTINGS)
+
+	channels = [0=1,1=2,2=3]
+	channel_area = new area_channelswitcher(channels,kstore);
+
+	multi_area = new area_multimode(kstore)
+
+	areas = [0=volume_area, 1=piano1, 2=piano2, 3=switcher,  4=piano4, 5=multi_area, 6=trumpet, 7=channel_area, 8=piano8, 9=piano9, 10=volume_area ]
+
+	if(nargs() < 1 || loop != 0){
+		looper(areas, kstore)
+	}
+	return(areas)
+}
