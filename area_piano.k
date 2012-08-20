@@ -137,7 +137,7 @@ class area_piano{
 	}
 
 	method modify_note(note){
-		note.chan = MAINCHANNEL
+		#note.chan = MAINCHANNEL
 		#note.vol *= GLOBALVOL/128.0
 		return(note)
 		ph = major(note)

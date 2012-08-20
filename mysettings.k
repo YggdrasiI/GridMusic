@@ -340,7 +340,8 @@ function settingGst2(loop){
 	return(areas)
 }
 
-function settingTest2(loop){
+# zynaddsubfx setting: KinectSet1.xmz 
+function kinectSet1(loop){
 
 	durations = [0=1b,1=4b,2=8b,3=8b,4=8b,5=8b]
 	durationsLong = [1=4b,2=8b,3=8b,4=16b,5=16b]
@@ -348,16 +349,26 @@ function settingTest2(loop){
 	newage1 = [0='co4', 1='e-o4', 2='fo4', 3='go4', 4='b-o4']
 	newage1Major = [0=major('c'), 1=major('e-'), 2=major('f'), 3=major('g'), 4=major('b-')]
 	newage2 = [0='e-', 1='f+', 2='g+', 3='a+', 4='c']
-	newage2Minor = [0=minor('e-'), 1=minor('f+'), 2=minor('g+'), 3=minor('a+'), 4=minor('c')]
-	
-	#piano_g = new area_piano([4=s2[4],1=s3[4],2=s4[4]],durations,50,128)
-	piano1 = new area_piano(newage1,durations,50,128)
-	piano2 = new area_piano(newage1,durationsLong,50,128)
-	piano4 = new area_piano(newage1Major,durations,50,128)
-	piano8 = new area_piano(newage2,durations,50,128)
-	piano9 = new area_piano(newage2Minor,durations,50,128)
 
-	trumpet = new area_trumpet(newage1,0,121)
+	#hammond = [0=minor('e-c6'), 1=minor('f+c6'), 2=minor('g+c6'), 3=minor('a+c6'), 4=minor('cc6')]
+	hammond = [0='e-c6', 1='f+c6', 2='g+c6', 3='a+c6', 4='cc6']
+	impDream5 = [0='co4,fo3t96', 1='e-o4,go3t96', 2='fo4,b-o3t96', 3='go4,co4t96', 4='b-o4,e-o4t96']
+	resonance = [0='cc3o2', 1='e-c3o2', 2='fc3o3', 3='gc3o3', 4='b-c3o4']
+	metal = [ 0='cd192c4', 1='dd192c4', 2='ed192c4', 3='fd192c4', 4='gd192c4', 5='ad192c4', 6='bd192c4', 7='co4d192c4' ]
+	bubble = [ 0='cc8', 1='dc8', 2='ec8', 3='fc8', 4='gc8', 5='ac8', 6='bc8', 7='co4c8', 8='do4c8', 9='eo4c8', 10='fo4c8', 11='go4c8', 12='ao4c8', 13='bo4c8', 14='co5c8' ]
+	arpeggio3 = [0=minor('e-'), 1=minor('f+'), 2=minor('g+'), 3=minor('a+'), 4=minor('c')]
+	softvibes = [0='e-c7', 1='f+c7', 2='g+c7', 3='a+c7', 4='cc7']
+	piano = [0='e-c9', 1='f+c9', 2='g+c9', 3='a+c9', 4='cc9']
+
+	#piano_g = new area_piano([4=s2[4],1=s3[4],2=s4[4]],durations,50,128)
+	piano1 = new area_piano(impDream5,durations,30,90)
+	piano2 = new area_piano(bubble,durations,50,128)
+	piano4 = new area_piano(hammond,durationsLong,20,100)
+	piano5 = new area_piano(piano,durations,50,128)
+	piano8 = new area_piano(arpeggio3,durations,50,100)
+	piano9 = new area_piano(metal,durations,50,100)
+
+	trumpet = new area_trumpet(resonance,20,121)
 
 	#bpm_area = new area_bpm( 30, 190, 20, 1)
 	volume_area = new area_volume( 20, 127, 5)
@@ -368,9 +379,58 @@ function settingTest2(loop){
 	channels = [0=1,1=2,2=3]
 	channel_area = new area_channelswitcher(channels,kstore);
 
-	multi_area = new area_multimode(kstore)
+	#multi_area = new area_multimode(kstore)
 
-	areas = [0=volume_area, 1=piano1, 2=piano2, 3=switcher,  4=piano4, 5=multi_area, 6=trumpet, 7=channel_area, 8=piano8, 9=piano9, 10=volume_area ]
+	areas = [0=volume_area, 1=piano1, 2=piano2, 3=switcher,  4=piano4, 5=piano5 , 6=trumpet, 7=channel_area, 8=piano8, 9=piano9, 10=volume_area ]
+
+	if(nargs() < 1 || loop != 0){
+		looper(areas, kstore)
+	}
+	return(areas)
+}
+
+# zynaddsubfx setting: KinectSet2.xmz 
+function kinectSet2(loop){
+
+	durations = [0=1b,1=4b,2=8b,3=8b,4=8b,5=8b]
+	durationsLong = [1=4b,2=8b,3=8b,4=16b,5=16b]
+	#3,2,2,3,2
+	newage1 = [0='co4', 1='e-o4', 2='fo4', 3='go4', 4='b-o4']
+	newage1Major = [0=major('c'), 1=major('e-'), 2=major('f'), 3=major('g'), 4=major('b-')]
+	newage2 = [0='e-', 1='f+', 2='g+', 3='a+', 4='c']
+
+	#hammond = [0=minor('e-c6'), 1=minor('f+c6'), 2=minor('g+c6'), 3=minor('a+c6'), 4=minor('cc6')]
+	#softvibes = [0='e-c7', 1='f+c7', 2='g+c7', 3='a+c7', 4='cc7']
+
+	impDream5 = [0='co4,fo3t96', 1='e-o4,go3t96', 2='fo4,b-o3t96', 3='go4,co4t96', 4='b-o4,e-o4t96']
+	bubble = [ 0='cc2', 1='dc2', 2='ec2', 3='fc2', 4='gc2', 5='ac2', 6='bc2', 7='co4c2', 8='do4c2', 9='eo4c2', 10='fo4c2', 11='go4c2', 12='ao4c2', 13='bo4c2', 14='co5c2' ]
+	hammond = [0='e-c3', 1='f+c3', 2='g+c3', 3='a+c3', 4='cc3']
+	piano = [0='e-c4', 1='f+c4', 2='g+c4', 3='a+c4', 4='cc4']
+	arpeggio3 = [0=minor('e-c5'), 1=minor('f+c5'), 2=minor('g+c5'), 3=minor('a+c5'), 4=minor('co4c5')]
+	metal = [ 0='cd192c6', 1='dd192c6', 2='ed192c6', 3='fd192c6', 4='gd192c6', 5='ad192c6', 6='bd192c6', 7='co4d192c6' ]
+	resonance = [0='cc7o2', 1='e-c7o2', 2='fc7o3', 3='gc7o3', 4='b-c7o4']
+
+	piano1 = new area_trumpet(impDream5,20,121)
+	piano2 = new area_trumpet(bubble,20,121)
+	piano4 = new area_trumpet(hammond,20,121)
+	piano5 = new area_trumpet(piano,20,121)
+	piano8 = new area_trumpet(arpeggio3,20,121)
+	piano9 = new area_trumpet(metal,20,121)
+
+	trumpet = new area_trumpet(resonance,20,121)
+
+	#bpm_area = new area_bpm( 30, 190, 20, 1)
+	volume_area = new area_volume( 20, 127, 5)
+
+	kstore = []
+	switcher = new area_setting_switcher(kstore,SETTINGS)
+
+	channels = [0=1,1=2,2=3]
+	channel_area = new area_channelswitcher(channels,kstore);
+
+	#multi_area = new area_multimode(kstore)
+
+	areas = [0=volume_area, 1=piano1, 2=piano2, 3=switcher,  4=piano4, 5=piano5 , 6=trumpet, 7=channel_area, 8=piano8, 9=piano9, 10=volume_area ]
 
 	if(nargs() < 1 || loop != 0){
 		looper(areas, kstore)
