@@ -10,6 +10,7 @@
 #include contrib/GridMusic/area_channelswitcher.k
 #include contrib/GridMusic/area_drum.k
 #include contrib/GridMusic/area_gst123.k
+#include contrib/GridMusic/area_systemcalls.k
 #include contrib/GridMusic/area.k
 #include contrib/GridMusic/area_knob.k
 #include contrib/GridMusic/area_multimode.k
@@ -38,7 +39,7 @@ MAINCHANNEL = 1
 # contains 11 areas.
 # See area_setting_switcher.k if you want load an other
 # setting on runtime.
-SETTINGS = [1=(settingPiano),2=(settingPiano),4=(setting3),5=(setting3),6=(setting3),8=(settingGst),9=(settingGst)]
+SETTINGS = [1=(settingPiano),2=(settingPiano),4=(setting3),5=(setting3),6=(setting3),8=(settingGst),9=(settingGst), 10=(settingHalloween)]
 
 # The variable kstore should be used to share data between areas and the osc looper.
 # I.e. to change the area objects.
@@ -121,7 +122,8 @@ function settingPiano(loop){
 	kstore = []
 	switcher = new area_setting_switcher(kstore,SETTINGS)
 
-	areas = [0=volume_area, 1=piano_c, 2=piano_f, 3=switcher,  4=piano_d, 5=piano_g, 6=piano_b, 7=volume_area, 8=piano_e, 9=piano_a, 10=volume_area ]
+	#areas = [0=volume_area, 1=piano_c, 2=piano_f, 3=switcher,  4=piano_d, 5=piano_g, 6=piano_b, 7=volume_area, 8=piano_e, 9=piano_a, 10=volume_area ]
+	areas = [0=volume_area, 1=piano_c, 2=piano_f, 3=piano_d,  4=piano_d, 5=piano_g, 6=piano_b, 7=volume_area, 8=piano_e, 9=piano_a, 10=volume_area ]
 
 	if(nargs() < 1 || loop != 0){
 		looper(areas, kstore)

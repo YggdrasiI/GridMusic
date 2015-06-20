@@ -11,16 +11,20 @@
 # $KEYROOT/bin/key_alsa contrib/GridMusic/start.k -c "kinect(\"$Func\")" 
 
 #include contrib/GridMusic/kinect.k
-##include contrib/GridMusic/mysettings.k
+#include contrib/GridMusic/mysettings.k
 #include basic1.k
 
 function kinect(func){
   LOWKEY=1
-  fhandles=["settingTest"=(settingTest),
-	"settingPiano"=(settingPiano),
-	"settingGst"=(settingGst)
+#enable outport 1 on startup
+	outalsa = outport(1)
+	mapport(0,outalsa) 
+  fhandles=["settingTest"=(settingTest)
+	,"settingPiano"=(settingPiano)
+	,"settingGst"=(settingGst)
 #	,"kinectSet1"=(kinectSet1)
 #	,"kinectSet2"=(kinectSet2)
+	,"halloween"=(settingHalloween)
 	]
   printf("Start %s\n", func)
   fhandles[func]()

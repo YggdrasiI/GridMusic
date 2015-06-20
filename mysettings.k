@@ -251,7 +251,7 @@ function setting6(loop,nr){
 	#durations = [0=24,1=1b,2=2b,3=4b,4=8b,5=16b]
 	durations = [0=1b,1=4b,2=8b,3=16b,4=32b,5=32b]
 
-	filename = sprintf("midi/Christian/Drums/%i.mid",nr);
+	filename = sprintf("midi/christian/Drums/%i.mid",nr);
 	inst = readmf(filename);
 	foo = []
 	for(i=0;i<30;i++){
@@ -435,5 +435,53 @@ function kinectSet2(loop){
 	if(nargs() < 1 || loop != 0){
 		looper(areas, kstore)
 	}
+	return(areas)
+}
+
+
+
+# Halloween, Play different mp3's on two panels
+function settingHalloween(loop){
+
+	speeds = [0=2b,1=1b,2=48,3=24,4=12]
+	durations = [0=1b,1=4b,2=8b,3=16b,4=32b,5=32b]
+	durations2 = [0=1b,1=2b,2=2b,3=2b,4=2b,5=2b]
+
+	possible_notes0 = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
+
+	possible_notes1 = []
+	for( i in possible_notes0 ){
+		n = possible_notes0[i]
+		n.chan = 2
+		possible_notes1[i] = n
+	}
+	possible_notes2 = []
+	for( i in possible_notes0 ){
+		n = possible_notes0[i]
+		n.chan = 3
+		possible_notes2[i] = n
+	}
+	possible_notes3 = []
+	for( i in possible_notes0 ){
+		n = possible_notes0[i]
+		n.chan = 4
+		possible_notes3[i] = n
+	}
+
+		possible_notes_multichannel = [ 0='c',1='e',2='g',3='a',4='co4', 5='cc2',6='ec2',7='gc2',8='ac2',9='co4', 10='cc3',11='ec3',12='gc3',13='ac3',14='co4', 14='cc4',15='ec4',16='gc4',17='ac4',18='co4' ]
+
+		piano_0 = new area_piano(possible_notes0,durations2,30,128)
+		piano_1 = new area_piano(possible_notes1,durations2,30,128)
+		piano_2 = new area_piano(possible_notes2,durations2,30,128)
+		piano_3 = new area_piano(possible_notes3,durations2,30,128)
+		#mp3_0 = new area_systemcalls()
+		#mp3_1 = new area_systemcalls()
+
+		kstore = []
+		areas = [ 0=piano_0, 1=piano_1, 2=piano_2, 3=piano_3 ]
+
+		if(nargs() < 1 || loop != 0){
+			looper(areas, kstore)
+		}
 	return(areas)
 }
