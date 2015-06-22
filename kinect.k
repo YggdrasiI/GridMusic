@@ -67,7 +67,7 @@ KSTORE = []
 
 ################ SETTINGS ####################
 # Extend settingExample for your own settings
-# and just call them in keykit's console. 
+# and invoke them in keykit's console. 
 
 # Setting for 
 function settingExample(loop){
@@ -80,8 +80,8 @@ function settingExample(loop){
 	piano = new area_piano(notes,durations,min_vol,max_vol)
 
 	areas = [ 0=piano, 1=piano, 2=piano, 3=piano,
-						4=piano, 5=piano, 6=piano,
-						7=piano, 8=piano, 9=piano, 10=piano ]
+	4=piano, 5=piano, 6=piano,
+	7=piano, 8=piano, 9=piano, 10=piano ]
 
 	if(nargs() < 1 || loop != 0){
 		looper(areas, kstore)
@@ -137,7 +137,7 @@ function settingPiano(loop){
 function settingGst(loop){
 
 	files=[ 1="filename.mp3",
-2="filename2.mp3"
+	2="filename2.mp3"
 	];
 
 	bpm_area = new area_bpm( 30, 190, 20, 1)
@@ -349,77 +349,77 @@ class looperobj {
 
 			lock($)
 			#if ( addr ~~ "/tuio/25Dcur.*" ) {
-			#	print("25cur empfangen!")
-			#} else if ( addr ~~ "/tuio/25Dobj.*" ) {
-			#	print("25obj empfangen!")
-			#}
+				#	print("25cur empfangen!")
+				#} else if ( addr ~~ "/tuio/25Dobj.*" ) {
+					#	print("25obj empfangen!")
+					#}
 
-			$.lastosc = Now
-			unlock($)
+					$.lastosc = Now
+					unlock($)
+				}
+			}
+
+			method XXreplace_areas(new_areas){
+				for( i in new_areas) {
+					tmp = $.areas[i]
+					$.areas[i] = new_areas[i]
+					deleteobject(tmp)
+				}
+			}
+
+			method get_areas(){
+				return($.areas)
+			}
+
+			method set_areas(areas){
+				#lock($)#already locked
+				$.areas = areas
+				verbose("Set areas",$.areas)
+				#unlock($)
+			}
+
+			method delete {
+				if($.oscf > -1){
+					close($.oscf)
+				}
+				kill($.osctid)
+
+				for( i=0 ; i<$.areas_size ; i++ ){
+					verbose("Del area ",i)
+					deleteobject($.areas[i])
+				}
+				$.areas = []
+			}
 		}
-	}
 
-	method XXreplace_areas(new_areas){
-		for( i in new_areas) {
-			tmp = $.areas[i]
-			$.areas[i] = new_areas[i]
-			deleteobject(tmp)
+		########## END MAIN CLASS ####################
+
+		# Add phrase to global record
+		function glob_record(ph){
+			if( KSTORE["record"] == '' ){
+				KSTORE["record_starttime"]  = Now
+				KSTORE["record"] = ph
+				return()
+			}
+
+			td = Now - KSTORE["record_starttime"] 
+			ph.time += td
+			KSTORE["record"] |= ph
 		}
-	}
 
-	method get_areas(){
-		return($.areas)
-	}
-
-	method set_areas(areas){
-		#lock($)#already locked
-		$.areas = areas
-		verbose("Set areas",$.areas)
-		#unlock($)
-	}
-
-	method delete {
-		if($.oscf > -1){
-			close($.oscf)
+		function glob_record_test(ph){
+			td = 2b 
+			ph2 = ''
+			for( n in ph){
+				n.time += td
+				ph2 |= n
+			}
+			return(ph2)
 		}
-		kill($.osctid)
-
-		for( i=0 ; i<$.areas_size ; i++ ){
-			verbose("Del area ",i)
-			deleteobject($.areas[i])
+		function glob_record_test2(ph){
+			td = 2b 
+			ph2 = ph
+			ph2.time += td
+			return(ph2)
 		}
-		$.areas = []
-	}
-}
-
-########## END MAIN CLASS ####################
-
-# Add phrase to global record
-function glob_record(ph){
-	if( KSTORE["record"] == '' ){
-		KSTORE["record_starttime"]  = Now
-		KSTORE["record"] = ph
-		return()
-	}
-		
-	td = Now - KSTORE["record_starttime"] 
-	ph.time += td
-	KSTORE["record"] |= ph
-}
-
-function glob_record_test(ph){
- td = 2b 
- ph2 = ''
-	for( n in ph){
-		n.time += td
-		ph2 |= n
-	}
- return(ph2)
-}
-function glob_record_test2(ph){
- td = 2b 
- ph2 = ph
- ph2.time += td
- return(ph2)
-}
 

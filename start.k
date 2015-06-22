@@ -15,18 +15,19 @@
 #include basic1.k
 
 function kinect(func){
-  LOWKEY=1
-#enable outport 1 on startup
+	LOWKEY=1
+	#enable outport 1 on startup
 	outalsa = outport(1)
 	mapport(0,outalsa) 
-  fhandles=["settingTest"=(settingTest)
+	fhandles=["settingTest"=(settingTest)
 	,"settingPiano"=(settingPiano)
 	,"settingGst"=(settingGst)
-#	,"kinectSet1"=(kinectSet1)
-#	,"kinectSet2"=(kinectSet2)
+	#	,"kinectSet1"=(kinectSet1)
+	#	,"kinectSet2"=(kinectSet2)
 	,"halloween"=(settingHalloween)
+	,"h2"=(settingH2)
 	]
-  printf("Start %s\n", func)
-  fhandles[func]()
+	printf("Start %s\n", func)
+	fhandles[func]()
 }
 

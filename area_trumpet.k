@@ -1,8 +1,12 @@
 # Play one note/hand with very long duration.
 # Needs midi instrument, which consides .dur-property, like trumpet. 
-# Depth control volume and volume will set to 0 if hand leave the area.
-# Set up your midi controller to react on volume change messages!
-# I.e. in zynaddsubfx: Select "Vol" in 'controller window'
+# The hand depth controls the volume. The volume will be set to 0 if
+# the hand leaves the area.
+#
+# Check if your midi controller can react on volume change messages.
+# Otherwise it does not work.
+# Option in zynaddsubfx: Serach for "Vol" in the controller window
+#
 class area_trumpet{
 	method init(possible_notes, vol_min, vol_max) {
 

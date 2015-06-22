@@ -70,14 +70,14 @@ class area_stepfile{
 			$.toplay += 1
 		}
 		#if( $.blocktimes[handid] < Now )
-			# select maximal volume reached in the time intervall (till $.hands is reset) 
-			#if( $.hands[handid] != "" && $.hands[handid].vol > note.vol )
-			if( (handid in $.hands) && $.hands[handid].vol > note.vol ){
-				note.vol = $.hands[handid].vol
-				$.hands[handid] = note
-			}else{
-				$.hands[handid] = note
-			}
+		# select maximal volume reached in the time intervall (till $.hands is reset) 
+		#if( $.hands[handid] != "" && $.hands[handid].vol > note.vol )
+		if( (handid in $.hands) && $.hands[handid].vol > note.vol ){
+			note.vol = $.hands[handid].vol
+			$.hands[handid] = note
+		}else{
+			$.hands[handid] = note
+		}
 		#
 
 		# reset counter (till inactivity reached)

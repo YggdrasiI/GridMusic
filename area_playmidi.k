@@ -158,7 +158,7 @@ class area_playmidi_random {
 			#load midi files
 			$.mfile = readmf($.mfilenames[$.playing])
 			$.mfile = normalize($.mfile,-1,$.volfactor*GLOBALVOL)
-	
+
 			$.mfile = change_channels($.mfile,4)
 
 			if( iy > 0 ){

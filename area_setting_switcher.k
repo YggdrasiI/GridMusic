@@ -25,9 +25,9 @@ class area_setting_switcher{
 
 	method defaultsettings(){
 		if ( typeof(SETTINGS) == "array" )
-			s = SETTINGS
+		s = SETTINGS
 		else
-			s = [1=(settingPiano),2=(settingPiano),4=(setting3),5=(setting3),6=(setting3),8=(settingGst),9=(settingGst)]
+		s = [1=(settingPiano),2=(settingPiano),4=(setting3),5=(setting3),6=(setting3),8=(settingGst),9=(settingGst)]
 		return(s)
 	}
 

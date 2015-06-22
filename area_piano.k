@@ -1,5 +1,4 @@
 # Simple class to play one note. 
-## Speed hat Einfluss auf die Realzeit-Dauer einer Musikschleife. Einheit?!
 class area_piano{
 	method init(possible_notes, speeds, vol_min, vol_max) {
 

@@ -47,7 +47,7 @@ class area_knob{
 			for( i in $.replace_ids ){
 				id = $.replace_ids[i]
 				if( typeof($.replace_areas[id]) != "object" ){
-				#if( id in $.replace_areas )
+					#if( id in $.replace_areas )
 					print("sollte nicht erreicht werden.")
 					$.replace_areas[id] = $  # $$, not $! Das ist hier aber nicht mgl.
 				}
@@ -62,7 +62,7 @@ class area_knob{
 		if( nargs() < 4 ){
 			handler = []
 		}
-		
+
 		if( typeof(handler["select"]) == "function" ) $.select = handler["select"]
 		else $.select = $.default_select_handler
 		if( typeof(handler["release"]) == "function" ) $.release = handler["release"]
@@ -75,7 +75,7 @@ class area_knob{
 		else $.replace = $.default_replace_handler
 		if( typeof(handler["restore"]) == "function" ) $.restore = handler["restore"]
 		else $.restore = $.default_restore_handler
-		
+
 	}
 
 	method update_handler(areaid,handid,x,y,z) {
@@ -83,7 +83,7 @@ class area_knob{
 		#iy = floor( ($.dimY)*z )
 		iz = floor( ($.dimZ)*z )
 		td = Now-$.last_refresh_time;
-#		lock($)
+		#		lock($)
 		if( $.pushed == 1 && ((iz < 2 && td > 1b && areaid == $.lastid) || td > 3b ) ){
 			#change push flag if last pushed area is leaved or some time elapsed
 			$.pushed = 0
@@ -128,7 +128,7 @@ class area_knob{
 		if( areaid == $.lastid ){
 			$.last_refresh_time = Now
 		}
-#		unlock($)
+		#		unlock($)
 	}
 
 	# replace areas with $ 

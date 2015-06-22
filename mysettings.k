@@ -292,22 +292,22 @@ function setting6(loop,nr){
 function settingGst2(loop){
 
 	files=[ 1="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/01 - the end of all you'll know.mp3",
-2="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/02 - Torukia.mp3",
-3="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/03 - know your enemy.mp3",
-4="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/04 - Laser Seeker.mp3",
-5="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/05 - break through.mp3",
-6="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/06 - flying low.mp3",
-7="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/07 - Europe.mp3",
-8="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/08 - Hantou no Higashi.mp3",
-9="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/09 - Mikansei Love Story.mp3",
-10="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/10 - Christmas in the Silent Forest.mp3",
-11="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/11 - access all areas.mp3",
-12="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/12 - sacred terrorist.mp3",
-13="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/13 - dear john.mp3",
-14="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/14 - 35.7c.mp3",
-15="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/15 - Smile.mp3",
-16="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/16 - flashback memory stick.mp3",
-17="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/17 - dew.mp3"
+	2="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/02 - Torukia.mp3",
+	3="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/03 - know your enemy.mp3",
+	4="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/04 - Laser Seeker.mp3",
+	5="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/05 - break through.mp3",
+	6="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/06 - flying low.mp3",
+	7="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/07 - Europe.mp3",
+	8="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/08 - Hantou no Higashi.mp3",
+	9="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/09 - Mikansei Love Story.mp3",
+	10="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/10 - Christmas in the Silent Forest.mp3",
+	11="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/11 - access all areas.mp3",
+	12="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/12 - sacred terrorist.mp3",
+	13="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/13 - dear john.mp3",
+	14="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/14 - 35.7c.mp3",
+	15="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/15 - Smile.mp3",
+	16="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/16 - flashback memory stick.mp3",
+	17="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/17 - dew.mp3"
 	];
 
 	bpm_area = new area_bpm( 30, 190, 20, 1)
@@ -468,20 +468,44 @@ function settingHalloween(loop){
 		possible_notes3[i] = n
 	}
 
-		possible_notes_multichannel = [ 0='c',1='e',2='g',3='a',4='co4', 5='cc2',6='ec2',7='gc2',8='ac2',9='co4', 10='cc3',11='ec3',12='gc3',13='ac3',14='co4', 14='cc4',15='ec4',16='gc4',17='ac4',18='co4' ]
+	possible_notes_multichannel = [ 0='c',1='e',2='g',3='a',4='co4', 5='cc2',6='ec2',7='gc2',8='ac2',9='co4', 10='cc3',11='ec3',12='gc3',13='ac3',14='co4', 14='cc4',15='ec4',16='gc4',17='ac4',18='co4' ]
 
-		piano_0 = new area_piano(possible_notes0,durations2,30,128)
-		piano_1 = new area_piano(possible_notes1,durations2,30,128)
-		piano_2 = new area_piano(possible_notes2,durations2,30,128)
-		piano_3 = new area_piano(possible_notes3,durations2,30,128)
-		#mp3_0 = new area_systemcalls()
-		#mp3_1 = new area_systemcalls()
+	piano_0 = new area_piano(possible_notes0,durations2,30,128)
+	piano_1 = new area_piano(possible_notes1,durations2,30,128)
+	piano_2 = new area_piano(possible_notes2,durations2,30,128)
+	piano_3 = new area_piano(possible_notes3,durations2,30,128)
+	#mp3_0 = new area_systemcalls()
+	#mp3_1 = new area_systemcalls()
 
-		kstore = []
-		areas = [ 0=piano_0, 1=piano_1, 2=piano_2, 3=piano_3 ]
+	kstore = []
+	areas = [ 0=piano_0, 1=piano_1, 2=piano_2, 3=piano_3 ]
 
-		if(nargs() < 1 || loop != 0){
-			looper(areas, kstore)
-		}
+	if(nargs() < 1 || loop != 0){
+		looper(areas, kstore)
+	}
+	return(areas)
+}
+
+# Ein Pianofeld und ein Trompetenfeld zum Testen
+# beider Klassen.
+function settingH2(loop){
+
+	speeds = [0=2b,1=1b,2=48,3=24,4=12]
+	durations = [0=1b,1=4b,2=8b,3=16b,4=32b,5=32b]
+	durations2 = [0=1b,1=2b,2=2b,3=2b,4=2b,5=2b]
+
+	possible_notes0 = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
+	piano_0 = new area_piano(possible_notes0,durations2,30,128)
+
+	# Jeweils zwei Noten, etwas zeitversetzt
+	impDream5 = [0='co4,fo3t96', 1='e-o4,go3t96', 2='fo4,b-o3t96', 3='go4,co4t96', 4='b-o4,e-o4t96']
+	piano_1 = new area_trumpet(impDream5,10,101)
+
+	kstore = []
+	areas = [ 0=piano_0, 1=piano_1 ]
+
+	if(nargs() < 1 || loop != 0){
+		looper(areas, kstore)
+	}
 	return(areas)
 }

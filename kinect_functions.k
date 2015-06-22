@@ -160,12 +160,12 @@ function extract2(ph,start_t, min_dt){
 # Reduce channels to nchan
 function reduce_channels(ph, nchan){
 
-			ph2 = ''
-			for( p in ph ){
-				if( p.chan > nchan ) p.chan=rand(nchan)
-				ph2|=p
-			}
-return(ph2)
+	ph2 = ''
+	for( p in ph ){
+		if( p.chan > nchan ) p.chan=rand(nchan)
+		ph2|=p
+	}
+	return(ph2)
 }
 
 
@@ -262,33 +262,44 @@ function deletesubitems(obj,arr){
 		del = 1
 		#check if obj related to arr[i]. 
 		#			for( c in obj2.children() ){
-		#				if (c==obj) del=0
-		#			}
-		if( obj2 == obj) del=0
-		else{
-			for( par in obj2.inherited() ){
-				if (par==obj) del=0
+			#				if (c==obj) del=0
+			#			}
+			if( obj2 == obj) del=0
+			else{
+				for( par in obj2.inherited() ){
+					if (par==obj) del=0
+				}
+			}
+			if( del ){
+				delete(arr[i])
+				verbose("Delete subitem")
+				deleteobject(obj2)
 			}
 		}
-		if( del ){
-			delete(arr[i])
-			verbose("Delete subitem")
-			deleteobject(obj2)
-		}
 	}
-}
 
-# convert note messages to pressure messages
-# better&faster solution will be
-# 'ph.type = PRESSURE' functionality…
-function pressure(ph){
-	ret = ''
-	for( n in ph ){
-		if( n.type == NOTE || n.type == NOTEON ){
+	# convert note messages to pressure messages
+	# better&faster solution will be
+	# 'ph.type = PRESSURE' functionality…
+	function pressure(ph){
+		ret = ''
+		for( n in ph ){
+			if( n.type == NOTE || n.type == NOTEON ){
 				p = midibytes( 0xA0 | (n.chan-1), n.pitch, n.vol )
 				p.time = n.time
 				ret += p
+			}
 		}
+		return(ret)
 	}
-	return(ret)
-}
+
+	###############################
+	## Midi message functions
+	###############################
+	# return bytes to change instrument 
+	function changeInstrument( channel, index ){
+		statusbyte = 0xC0 + channel
+		data1 = index & 0x7F
+		ph = midibytes( statusbyte, data1 )
+		return(ph)
+	}

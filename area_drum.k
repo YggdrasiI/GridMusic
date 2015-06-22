@@ -116,8 +116,8 @@ class area_drum{
 			#if($.hands[id] != "" ){
 				verbose("Kill", $.hands[id]["mt"] )
 				kill($.hands[id]["mt"])
-			#}
+				#}
+			}
+			unlock($)
 		}
-		unlock($)
 	}
-}

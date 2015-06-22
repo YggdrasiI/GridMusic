@@ -1,5 +1,4 @@
-# Verwaltung von Listenern mit diesem Unterobject
-# im Sende-Object ist addListener mit mit der gleichnamigen Methode aus dieser Klasse zu verbinden.
+# Listener class. 
 class sender{
 	method init(){
 		$.listener = []
@@ -9,7 +8,6 @@ class sender{
 		for( l in $.listener){
 			if($.listener[l] != ""){
 				$.listener[l][0].($.listener[l][1])(val)#variant for given function name
-				#$.listener[l][1]( $.listener[l][0], val )#wrong way?!
 			}
 		}
 	}
