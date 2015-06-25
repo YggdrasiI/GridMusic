@@ -49,5 +49,8 @@ class area {
 		}
 	}
 
+	method classof {
+		return($$.class)
+	}
 }
 

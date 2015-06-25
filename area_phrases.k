@@ -9,87 +9,108 @@
 #
 
 # Struct which stores the settings for area_phrases
-class settings_phrases{
-
-	# public
-	method init(){
+function settings_phrases{
+	set = [
 		# Flat stage, just first index used.
-		$.phrases1 = [0='c']
-		$.vol_range1 = ["low"=20, "high"=40]
+		"phrases1" = [0='+c'],
+		#"vol_range1" = ["low"=20, "high"=40],
+		"vol_range1" = ["low"=40, "high"=120],
 
 		# Deep stage, y axis used for selection.
-		$.phrases2 = [0='e', 1='c,d,e,f,g,a,b']
-		$.vol_range2 = ["low"=60, "high"=127]
+		"phrases2" = [0='e', 1='c,d,e,f,g,a,b'],
+		"vol_range2" = ["low"=60, "high"=127],
 
-		# Barrier from stage 1 to 2.
-		$.z_depth_limit = 0.25
+		# Barrier for entering of stage 1 
+		"z_depth_limit1" = 0.05,
 
-		# Factor for linear tranformation on vol_range1
-		$.z_depth_factor1 = float($vol_range[1]-$.vol_range[2])/$.z_depth_limit
+		# Barrier for entering of stage 2 
+		"z_depth_limit2" = 0.25,
 
 		# Normalize volume of all phrases, 0 disables
-		$.normalize_volumes = 1
+		"normalize_volumes" = 1,
 
 		# Restrict phrases on channel, 0 disables
-		$.normalize_channel = 0 
+		"normalize_channel" = 0 ,
 
 		# x axis defines can define different pitches stage 2 phrases.
-		$.pitch_offsets = [0=-3, 1=0, 2=0, 3=3]
+		"pitch_offsets" = [0=-3, 1=0, 2=0, 3=3],
 
 		# Minimal distance till next note will be played (in stage 2, [0,1]² plane)
-		$.minimal_distance = 0.2 * 0.2 # quadrature for l2-Norm.
+		"minimal_distance "= 0.2 * 0.2, # quadrature for l2-Norm.
 
 		# Segment length for each movement step
-		$.segment_duration = 1b
+		"segment_duration" = 1b,
 
 		# Divide range of slices
 		# Only detect slice changes if distance of sublices is > 1.
 		# [ range 1 ] [ range 2 ]
 		# [ 1  2  3 ] [ 4  5  6 ] 
-		$.subslices = 3
-		$.subslice_minimal_distance = 2
-	}
+		"subslices" = 3,
+		"subslice_minimal_distance" = 2
+		]
+
+	return(set)
 }
 
 class area_phrases{
 
 	# public
 	method init( settings ) {
+		if( nargs() < 1 ){
+			settings = settings_phrases()
+		}
 		$.settings = settings
+
+		# Factor for linear tranformation on vol_range1 plus rescaling on [0,1]
+		$.z_depth_factor1 = float($.settings["vol_range1"]["high"]-$.settings["vol_range1"]["low"])/settings["z_depth_limit2"] / 127
+		$.z_depth_constant1 = float($.settings["vol_range1"]["low"]) / 127
+
 
 		# State constants
 		$.STATE_TO_FLAT = 1
 		$.STATE_FLAT = 2
 		$.STATE_TO_DEEP = 3
 		$.STATE_DEEP = 4
-
-		$.phrases1_size = sizeof($.phrases_stage_1)
-		$.phrases2_size = sizeof($.phrases_stage_2)
+		
+		$.blendout = ''
 
 		# Normalize array indizies to 0,...	
-		phrases1 = copy_array2($.settings.phrases1)
-		phrases2 = copy_array2($.settings.phrases2)
+		phrases1 = copy_array2($.settings["phrases1"])
+		phrases2 = copy_array2($.settings["phrases2"])
+
+		$.phrases1_size = sizeof(phrases1)
+		$.phrases2_size = sizeof(phrases2)
 
 		# Normalize volume and channels
-		nv = integer($.settings.normalize_volumes)
-		nc = integer($.settings.normalize_channel)
-		for( i= $.phrases_stage_1_size; i>0; i--){
+		nv = integer($.settings["normalize_volumes"])
+		nc = integer($.settings["normalize_channel"])
+		for( i=0; i<$.phrases1_size; i++){
 			if( nv != 0 ){
-				$.phrases1[i] = maximize_volume($.phrases1[i], $.settings.vol_range1["high"])
+				phrases1[i] = maximize_volume(phrases1[i], $.settings["vol_range1"]["high"])
 			}
 			if( nc > 0 ){
-				$.phrases1[i].chan = nc
+				phrases1[i].chan = nc
 			}
 		}
-		# Put phrases back into stettings object
-		$.settings.phrases1 = phrases1
-		$.settings.phrases2 = phrases2
+		for( i=0; i<$.phrases2_size; i++){
+			if( nv != 0 ){
+				phrases2[i] = maximize_volume(phrases2[i], $.settings["vol_range2"]["high"])
+			}
+			if( nc > 0 ){
+				phrases2[i].chan = nc
+			}
+		}
 
-		$.x_range = sizeof($.settings.pitch_offsets) * $.settings.subslices
-		$.y_range = sizeof($.settings.phrases2)
+		# Put phrases back into stettings object
+		$.settings["phrases1"] = phrases1
+		$.settings["phrases2"] = phrases2
+
+		$.x_range = sizeof($.settings["pitch_offsets"]) * $.settings["subslices"]
+		$.y_range = sizeof($.settings["phrases2"])
 		$.z_range = 127 #unused
 
-		$.inherit( new area($.x_range, $.y_range, $.z_range) )
+		$.area =  new area($.x_range, $.y_range, $.z_range) 
+		$.inherit( $.area )
 
 		$.hands = []
 		$.hand_timestamps = [] 
@@ -98,6 +119,7 @@ class area_phrases{
 		$.update = $.update_handler
 		$.play = $.play_handler
 
+		$.loopid = -1 
 		$.loopid = task $.playloop()
 	}
 
@@ -107,23 +129,30 @@ class area_phrases{
 		sx = floor( $.x_range*x )
 		#iy = floor( $.y_range*y )
 		#iz = floor( $.z_range*z )
-		#ix = sx / $.settings.subslices
+		#ix = sx / $.settings["subslices"]
+		verbose("begin update")
 
 		lock($)
 
 		# Add new hand or get stored hand
 		if( !(handid in $.hands) ){
+			if( z < $.settings["z_depth_limit1"] ){ 
+				unlock($)
+				return()
+			}
 			hand = [ "state" = $.STATE_TO_FLAT,
 			"pos" = [0=x,1=y,2=z],
 			"sx" = sx,
-			"ph" = '', "ph_time" = 0, 
-			"time" = Now 
+			"ph" = '', "ph_time" = 0 
 			]
 			$.hands[handid] = hand
 		}else{
 			hand = $.hands[handid]
 		}
 
+		hand["time"] = Now 
+		z_smooth = hand["pos"][2]*0.7 + z*0.3
+		hand["pos"][2] = z_smooth
 
 		# State transitions
 		if( hand["state"] == $.STATE_DEEP ){
@@ -132,25 +161,29 @@ class area_phrases{
 			# Compare positions
 			d1 = x-hand["pos"][0]
 			d2 = y-hand["pos"][1]
-			if( d1*d1 + d2*d2 > $.settings.minimal_distance ){
+			if( d1*d1 + d2*d2 > $.settings["minimal_distance"] ){
 				hand["play_next_segment"] = 1
 				hand["pos"][0] = x
 				hand["pos"][1] = y
 			}
 
-		}else if( hand["state"] in [$.STATE_TO_FLAT, $.STATE_FLAT] ){
-
-			if( z > $.settings.z_depth_limit ){
-				$.add_to_blendout( hand["ph"] )
+		}else if( hand["state"] == $.STATE_TO_FLAT || hand["state"] == $.STATE_FLAT ){
+			if( z > $.settings["z_depth_limit2"] ){ # z or z_smooth
 				hand["state"] = $.STATE_TO_DEEP
+
+				z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
+				ph = hand["ph"]
+				ph.vol *= z2
+				$.add_to_blendout( ph )
+
+				hand["ph"] = ''
 				hand["pos"] = [0=x,1=y,2=z]
 			}else{
-				if( abs( hand["sx"]-sx ) >= $.settings.subslice_minimal_distance ){
+				if( abs( hand["sx"]-sx ) >= $.settings["subslice_minimal_distance"] ){
 					hand["play_new_slice"] = 1
 				}
 				hand["sx"] = sx
-				z_smooth = hand["pos"][2]*0.7 + z*0.3
-				hand["pos"] = [0=x,1=y,2=z_smooth] # depth value required in flat state
+				#hand["pos"] = [0=x,1=y,2=z] # without smooth
 			}
 
 		}
@@ -158,17 +191,33 @@ class area_phrases{
 		# reset counter (till inactivity reached)
 		#$.loop_count = 0
 		unlock($)
+		verbose("end update")
 	}
 
 	# protected
 	method play_handler() {
 		#TODO
-		lock($)
 		ph_new_to_play = ''
 		ph_changes = ''
 
-		for( hand in $.hands ){
+		lock($)
+		for( handid in $.hands ){
+			hand = $.hands[handid]
 			s = hand["state"]
+
+			# Remove old entries
+			if( (Now -hand["time"]) > 2b ){
+				verbose("Delete old hand", handid)
+
+				z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
+				ph = hand["ph"]
+				ph.vol *= z2
+				$.add_to_blendout( ph )
+
+				delete( $.hands[handid] ) # To delete in for loop array is no problem in keykit
+				continue
+			}
+
 			if( s == $.STATE_DEEP ){
 			}elif( s == $.STATE_TO_DEEP ){
 			}elif( s == $.STATE_FLAT ){
@@ -177,10 +226,15 @@ class area_phrases{
 				if( "play_new_slice" in hand ){
 					# Switch phrase pitch
 
-					delete( hand["play_new_slice"] )
-					$.add_to_blendout(ph)
+					z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
+					ph = hand["ph"]
+					ph.vol *= z2
+					$.add_to_blendout( ph )
 
-					ph = $.new_note_flat( hand, $.settings.phrases1[0] )
+					delete( hand["play_new_slice"] )
+
+					ph = $.new_note_flat( hand, $.settings["phrases1"][0] )
+					hand["ph"] = ph
 
 					# Filter out pressure changes for same notes to avoid collision
 					ph_changes = filter_notes(ph_changes, ph)
@@ -188,29 +242,37 @@ class area_phrases{
 
 				}else{
 					# Adapt volume 
-					z2 = hand["pos"][2] * $.settings.z_depth_factor1 + $.settings.vol_range1[0] 
-					ph.vol *= z2  
+					z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
+					if( (hand["vol_factor"] - z2) * $.settings["vol_range1"]["high"] > 3 ){
+						hand["vol_factor"] = z2
+						ph.vol *= z2  
+						verbose(ph,ph.vol,z2)
 
-					# Remove new played notes to avoid collision
-					ph = filter_notes(ph, ph_new_to_play)
-					ph_changes |= ph
+						# Remove new played notes to avoid collision
+						ph = filter_notes(ph, ph_new_to_play)
+						ph_changes |= ph
+					}
 				}
 
-			}else( s == $.STATE_TO_FLAT ){
+			}elif( s == $.STATE_TO_FLAT ){
 				# Play notes (mostly noteon-messages)
-				ph = $.new_note_flat( hand, $.settings.phrases1[0] )
+				ph = $.new_note_flat( hand, $.settings["phrases1"][0] )
 
 				# Filter out pressure changes for same notes to avoid collision
 				ph_changes = filter_notes(ph_changes, ph)
 				ph_new_to_play |= ph
+
+				hand["state"] = $.STATE_FLAT
 			}
 		}
+		unlock($)
 
 		# blending phrases
 		$.remove_from_blendout(ph_new_to_play)
-		ph_changes |= $.get_blendout(0.9)
+		ph_changes |= $.get_blendout(0.95)
 
-		unlock($)
+		if( sizeof(ph_new_to_play) > 0 )
+			verbose("play", ph_new_to_play)
 
 		# Change type to pressure 
 		ph_changes = pressure(ph_changes)
@@ -218,7 +280,7 @@ class area_phrases{
 		# Finally, play notes
 		realtime( ph_changes | ph_new_to_play, Now)
 
-		sleeptill(Now+10)
+		sleeptill(Now+30)
 
 	}
 
@@ -226,37 +288,18 @@ class area_phrases{
 	method new_note_flat( hand, ph ){
 
 		# Add pitch offset
-		ix = hand["sx"] / $.settings.subslices
-		ph.pitch += $.settings.pitch_offsets[ix] 
+		ix = hand["sx"] / $.settings["subslices"]
+		ph.pitch += $.settings["pitch_offsets"][ix] 
 
 		# Save value without volume changes
 		hand["ph"] = ph
 
 		# Adapt volume 
-		z2 = hand["pos"][2] * $.settings.z_depth_factor1 + $.settings.vol_range1[0] 
+		z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
+		hand["vol_factor"] = z2
 		ph.vol *= z2 
 
 		return(ph)
-	}
-
-	method get_note(){
-		lock($)
-
-		tmp = extract1( $.data["file"],$.data["timestamp"],$.testdur)
-		note = tmp[0]
-		$.data["timestamp"] = tmp[1]
-		#print("note: ", note,"    noteduration: ", note.dur)
-		verbose("noteduration: ", note.dur)
-
-		if( $.data["timestamp"] >= $.data["maxtimestamp"] ){
-			$.data["timestamp"] = 0
-		}
-
-		unlock($)
-		note.vol *= 1.5
-		#note.time = 0
-		note.chan = 1
-		return(note)
 	}
 
 	# I.E. to add some decorations
@@ -270,12 +313,10 @@ class area_phrases{
 	# and should converted into pressure later, if used.
 	# private
 	method add_to_blendout(ph){
-		lock($)
 		ph = ph { ??.type == NOTE || ??.type == NOTEON }
 		ph.type = NOTEON
 		ph.time = 0
 		$.blendout |= ph
-		unlock($)
 	}
 
 	# Return current blendout varible
@@ -283,10 +324,14 @@ class area_phrases{
 	# private
 	method get_blendout(damping_factor){
 		lock($)
-		$.blendout *= damping_factor
+		#($.blendout).vol *= damping_factor
+		ph = $.blendout
+		ph.vol *= damping_factor
+		$.blendout = ph
+		ret = $.blendout
 		$.blendout = $.blendout { ??.vol > 0 }
 		unlock($)
-		return($.blendout)
+		return(ret)
 	}
 
 	# To remove notes from blendout which
@@ -312,5 +357,55 @@ class area_phrases{
 		unlock($)
 	}
 
+	method delete(){
+		kill($.loopid) # double kill
+
+		#noteoff messages
+		ph_off=''
+		for( handid in $.hands ){
+			hand = $.hands[handid]
+			ph = hand["ph"]
+			ph.vol = 0
+			ph_off |= ph
+		}
+		#verbose("Note off message:", ph_off)
+		ph_off |= $.get_blendout(0.0)
+		realtime(ph_off,Now)
+
+	}
+
 }
 
+function test_phrases(){
+	print("Create object")
+	settings = settings_phrases() 
+	foo = new area_phrases(settings)
+
+	z = 0.24
+	foo.update(1,1,0.5,0.5,z)
+
+	#sleeptill(Now+500)
+
+	#z = 0.2
+	#foo.update(1,1,0.5,0.5,z)
+	sleeptill(Now+2b)
+
+	foo.update(1,1,0.1,0.1,z)
+
+	for( i = 0; i< 20; i++){
+		z -= 0.02
+		sleeptill(Now+30)
+		foo.update(1,1,0.9,0.5,z)
+	}
+
+	sleeptill(Now+1000)
+
+	print("Delete object")
+	deleteobject(foo)
+
+	print(foo)
+	foo = new area_phrases(settings)
+	foo.update(1,1,0.5,0.5,z)
+	sleeptill(Now+40)
+	deleteobject(foo)
+}

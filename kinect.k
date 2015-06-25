@@ -21,6 +21,7 @@
 #include contrib/GridMusic/area_setting_switcher.k
 #include contrib/GridMusic/area_stepfile.k
 #include contrib/GridMusic/area_trumpet.k
+#include contrib/GridMusic/area_phrases.k
 #include contrib/GridMusic/area_volume.k
 #include contrib/GridMusic/oscplayer.k
 #include contrib/GridMusic/sender.k

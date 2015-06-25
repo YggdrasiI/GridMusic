@@ -278,23 +278,20 @@ function deletesubitems(obj,arr){
 	for( i in arr ){
 		obj2 = arr[i]
 		del = 1
-		#check if obj related to arr[i]. 
-		#			for( c in obj2.children() ){
-			#				if (c==obj) del=0
-			#			}
-			if( obj2 == obj) del=0
-			else{
-				for( par in obj2.inherited() ){
-					if (par==obj) del=0
-				}
-			}
-			if( del ){
-				delete(arr[i])
-				verbose("Delete subitem")
-				deleteobject(obj2)
+		if( obj2 == obj){
+			del=0
+		}else{
+			for( par in obj2.inherited() ){
+				if (par==obj) del=0
 			}
 		}
+		if( del ){
+			delete(arr[i])
+			verbose("Delete subitem")
+			deleteobject(obj2)
+		}
 	}
+}
 
 
 	###############################
