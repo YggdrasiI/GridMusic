@@ -498,11 +498,24 @@ function settingH2(loop){
 	piano_0 = new area_piano(possible_notes0,durations2,30,128)
 
 	# Jeweils zwei Noten, etwas zeitversetzt
-	impDream5 = [0='co4,fo3t96', 1='e-o4,go3t96', 2='fo4,b-o3t96', 3='go4,co4t96', 4='b-o4,e-o4t96']
-	piano_1 = new area_trumpet(impDream5,10,101)
+	#impDream5 = [0='co4,fo3t96', 1='e-o4,go3t96', 2='fo4,b-o3t96', 3='go4,co4t96', 4='b-o4,e-o4t96']
+	#piano_1 = new area_trumpet(impDream5,10,101)
+
+	# Test of playmidi class
+	#drums = drums()
+
+	# Test of stepfile class
+	files = []
+	files[0] = "music/midi/africa.mid"
+	files[1] = "music/midi/olaf/monkazimo.mid"
+	files[2] = "music/midi/hb3.mid"
+	#data = stepfile_data(files[rand(sizeof(files))])
+	data = stepfile_data(files[1])
+	stepfile1 = new area_stepfile(possible_notes0,durations2,30,128, data)
 
 	kstore = []
-	areas = [ 0=piano_0, 1=piano_1 ]
+	#areas = [ 0=piano_0, 1=piano_1 ]
+	areas = [ 0=piano_0, 1=stepfile1 ]
 
 	if(nargs() < 1 || loop != 0){
 		looper(areas, kstore)

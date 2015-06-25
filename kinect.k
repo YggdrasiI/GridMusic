@@ -3,6 +3,8 @@
 # (MMTT=MultiMultiTouchTouch aka Space Palette)
 #################################################
 
+#define elif else if
+
 #include contrib/GridMusic/kinect_functions.k
 #include contrib/GridMusic/oscplayer.k
 #include contrib/GridMusic/gst123.k

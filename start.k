@@ -1,5 +1,6 @@
 # Use this file and the following script to call GridMusic 
 # without GUI.
+# Copy keyrc.k from ./lib/ into ./
 #
 # #!/bin/sh
 # export LD_LIBRARY_PATH=/usr/X11R6/lib
@@ -10,9 +11,10 @@
 # test -z "$1" || Func="$1" 
 # $KEYROOT/bin/key_alsa contrib/GridMusic/start.k -c "kinect(\"$Func\")" 
 
+GRIDMUSIC_PATH = "../contrib/GridMusic"
 #include contrib/GridMusic/kinect.k
 #include contrib/GridMusic/mysettings.k
-#include basic1.k
+##include basic1.k
 
 function kinect(func){
 	LOWKEY=1

@@ -78,44 +78,61 @@ function durarr(basiston){
 function filter_notes(aa,bb){
 	cc = aa
 	for( b in bb ){
-		cc = cc { ??.pitch != b.pitch } 
+		cc = cc { ??.pitch != b.pitch || ??.chan != b.chan } 
 	}
 	return(cc)
 }
 
-function maxvol(ph){
-	max = 0
-	for(n in ph){
-		if( max<n.vol ) max = n.vol	
-	}
-	return(max)
-}
-function minvol(ph){
-	min = 128
-	for(n in ph){
-		if( min>n.vol ) min = n.vol	
-	}
-	return(min)
-}
+## Redundant, use maxvolume in utils1.k
+#function maxvol(ph){
+#	max = 0
+#	for(n in ph){
+#		if( max<n.vol ) max = n.vol	
+#	}
+#	return(max)
+#}
+#
+## Redundant, use maxvolume in utils1.k
+#function minvol(ph){
+#	min = 128
+#	for(n in ph){
+#		if( min>n.vol ) min = n.vol	
+#	}
+#	return(min)
+#}
 
 # shink or expand vol of ph to [minvol,maxvol]
 function normalize(ph, ymin, ymax){
-	xmax = maxvol(ph)
-	xmin = minvol(ph)
+	xmax = maxvolume(ph)
+	xmin = minvolume(ph)
 	if( ymin == -1){ ymin=xmin; }
 	if( xmax - xmin < 0.01 ){
 		a = 0
 		b = ymax
 	}else{
-		a = (ymax-ymin)/(xmax-xmin)
+		a = float(ymax-ymin)/(xmax-xmin)
 		b = ymin-a*xmin
 	}
 	ph2 = ''
 	for( n in ph ){
-		n.vol = a*n.vol + b 
+		if( n.type != MIDIBYTES ){
+			n.vol = a*n.vol + b 
+		}
 		ph2 |= n
 	}
 	return(ph2)
+}
+
+# Set volume of loudest note of phrase to 127 (or new_ph_vol)
+# and scale other notes by the same factor.
+# Useful to normalize input phrases.
+function maximize_volume(ph, new_ph_vol){
+	if( nargs() < 2 ){
+		new_ph_vol = 127
+	}
+	ph_vol = maxvolume(ph)
+	ph.vol *= float(new_ph_vol)/ph_vol
+	return(ph)
 }
 
 # Extract part of phrase. 
@@ -137,7 +154,7 @@ function extract1(ph,start_t, min_dt){
 
 # Extract part of phrase. If the duration
 # of one extracted breaks min_dt, the
-# second return argument differ from
+# second return argument differs from
 # start_t + min_dt.
 function extract2(ph,start_t, min_dt){
 	begin = start_t 
@@ -181,6 +198,7 @@ function copy_array(a){
 	return(b)
 }
 
+# Normalize indizies
 function copy_array2(a){
 	b = []
 	i = 0
@@ -278,9 +296,14 @@ function deletesubitems(obj,arr){
 		}
 	}
 
+
+	###############################
+	## Midi message functions
+	###############################
+
 	# convert note messages to pressure messages
 	# better&faster solution will be
-	# 'ph.type = PRESSURE' functionality…
+	# 'ph.type = PRESSURE' functionality?!
 	function pressure(ph){
 		ret = ''
 		for( n in ph ){
@@ -293,11 +316,8 @@ function deletesubitems(obj,arr){
 		return(ret)
 	}
 
-	###############################
-	## Midi message functions
-	###############################
 	# return bytes to change instrument 
-	function changeInstrument( channel, index ){
+	function change_instrument( channel, index ){
 		statusbyte = 0xC0 + channel
 		data1 = index & 0x7F
 		ph = midibytes( statusbyte, data1 )

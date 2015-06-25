@@ -159,7 +159,7 @@ class area_playmidi_random {
 			$.mfile = readmf($.mfilenames[$.playing])
 			$.mfile = normalize($.mfile,-1,$.volfactor*GLOBALVOL)
 
-			$.mfile = change_channels($.mfile,4)
+			#$.mfile = change_channels($.mfile,4)
 
 			if( iy > 0 ){
 				$.rt = task $.repeat_current()

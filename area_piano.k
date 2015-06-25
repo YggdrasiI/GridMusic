@@ -1,4 +1,7 @@
 # Simple class to play one note. 
+# xyz Orientation defines note, volume and duration.
+# The input (movement) and output (sending midi) are
+# sperated into two tasks. (Avoid blocking of output.)
 class area_piano{
 	method init(possible_notes, speeds, vol_min, vol_max) {
 

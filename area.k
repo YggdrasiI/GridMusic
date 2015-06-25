@@ -1,4 +1,10 @@
 # 'abstract' base class for hand areas
+# The input (movement) and output (sending midi) are
+# sperated into two tasks. (Avoid blocking of output.)
+# Child classes should define their own handling methodes
+# for input and output, see 
+# - $.update (input handle) and
+# - $.play (output handle).
 class area {
 	method init(dimX,dimY,dimZ) {
 		verbose("create area")
@@ -9,6 +15,8 @@ class area {
 		$.update = $.update_handler
 		$.play = $.play_handler
 
+		# Store id of play task.
+		# Required for delete()
 		#	$.loopid = task $.playloop()
 		$.loopid = -1
 	}
@@ -22,23 +30,15 @@ class area {
 
 	method play_handler(){
 		verbose("play (area)")
-		#$.play = $$.play
-		$.play = $.play_handler2
-		sleeptill(Now+10b)
-	}
-
-	method play_handler2(){
-		verbose("play2 (area)")
+		# Reassign Example
 		$.play = $.play_handler
 		sleeptill(Now+10b)
 	}
 
 	method playloop(){
-
 		while(1){
 			$$.play()
 		}
-
 	}
 
 	method delete() {

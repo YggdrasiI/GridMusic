@@ -44,8 +44,9 @@ class area_trumpet{
 
 	method update_handler2(areaid,handid,x,y,z) {
 		#lock($)
-		z *= 2
+		z *= 1.4 
 		if( z>1) z = 1
+
 		ix = floor( $.dimX*x )
 		iz = floor($.dimZ*z )#vol
 		#iz = floor($.dimZ*z*3 )#vol
@@ -69,7 +70,7 @@ class area_trumpet{
 						note = $.possible_notes[oin]
 						note.vol = 0
 						verbose("(trumpet) Mute previous note", handid, oin)
-						realtime(note,Now)
+						realtime(note,Now) # TODO: bad idea to do this in the update_handle?!
 					}
 
 					# accociate hand with new note

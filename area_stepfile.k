@@ -33,9 +33,6 @@ class area_stepfile{
 		$.hands = []
 		$.htimestamps = []
 
-		$.last_seq = Now
-		$.sequenz = ''
-
 		$.update = $.update_handler
 		$.play = $.play_handler
 
@@ -87,17 +84,6 @@ class area_stepfile{
 	}
 
 	method play_handler() {
-		if(Now - $.last_seq > $.loop_beats && $.loop_count>0){
-			lock($)
-			sequenz = $.sequenz
-			$.last_seq = Now
-			$.sequenz = ''
-			$.loop_count -= 1
-			unlock($)
-
-			#				realtime(sequenz, Now)
-			#	print("Play sequenz")
-		}
 
 		#if( sizeof($.hands) > 0 ){}
 		#while( $.toplay > 0 ){}
@@ -140,6 +126,7 @@ class area_stepfile{
 		unlock($)
 		note.vol *= 1.5
 		#note.time = 0
+		note.chan = 1
 		return(note)
 	}
 
