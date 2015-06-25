@@ -114,8 +114,8 @@ class area_stepfile{
 		lock($)
 
 		tmp = extract1( $.data["file"],$.data["timestamp"],$.testdur)
-		note = tmp[0]
-		$.data["timestamp"] = tmp[1]
+		note = tmp["ph"]
+		$.data["timestamp"] = tmp["t"]
 		#print("note: ", note,"    noteduration: ", note.dur)
 		verbose("noteduration: ", note.dur)
 

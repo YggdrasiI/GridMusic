@@ -7,18 +7,25 @@
 #			of a pharse if the hand was moved a few units away. The
 #			direction of movemend does not count but the speed.
 #
+# Note about notation of notes:
+# NOTEON-notes has no duration. Thus '+c, +e' equals '+c +e'!
+# Do set time distance use '+c, +et96' or 
+# ph = 'c e'; ph.type = NOTEON
 
 # Struct which stores the settings for area_phrases
 function settings_phrases{
+	phA = 'e,c,ao2,go2';
+	phB = 'c, d, e, f, g, a, b'; phB.type = NOTEON
+
 	set = [
 		# Flat stage, just first index used.
 		"phrases1" = [0='+c'],
 		#"vol_range1" = ["low"=20, "high"=40],
-		"vol_range1" = ["low"=40, "high"=120],
+		"vol_range1" = ["low"=40, "high"=100],
 
 		# Deep stage, y axis used for selection.
-		"phrases2" = [0='e', 1='c,d,e,f,g,a,b'],
-		"vol_range2" = ["low"=60, "high"=127],
+		"phrases2" = [0=phA, 1=phB],
+		"vol_range2" = ["low"=60, "high"=120],
 
 		# Barrier for entering of stage 1 
 		"z_depth_limit1" = 0.05,
@@ -33,10 +40,10 @@ function settings_phrases{
 		"normalize_channel" = 0 ,
 
 		# x axis defines can define different pitches stage 2 phrases.
-		"pitch_offsets" = [0=-3, 1=0, 2=0, 3=3],
+		"pitch_offsets" = [0=-3, 1=0, 2=1, 3=3],
 
 		# Minimal distance till next note will be played (in stage 2, [0,1]² plane)
-		"minimal_distance "= 0.2 * 0.2, # quadrature for l2-Norm.
+		"minimal_distance" = 0.2 * 0.2, # quadrature for l2-Norm.
 
 		# Segment length for each movement step
 		"segment_duration" = 1b,
@@ -109,8 +116,15 @@ class area_phrases{
 		$.y_range = sizeof($.settings["phrases2"])
 		$.z_range = 127 #unused
 
-		$.area =  new area($.x_range, $.y_range, $.z_range) 
-		$.inherit( $.area )
+		# Duplicate some last array values to prevent omit out of bounce errors for x|y|z=1
+		l = sizeof( $.settings["phrases1"])
+		$.settings["phrases1"][l] = $.settings["phrases1"][l-1]
+		l = sizeof( $.settings["phrases2"])
+		$.settings["phrases2"][l] = $.settings["phrases2"][l-1]
+		l = sizeof( $.settings["pitch_offsets"])
+		$.settings["pitch_offsets"][l] = $.settings["pitch_offsets"][l-1]
+
+		$.inherit( new area($.x_range, $.y_range, $.z_range) )
 
 		$.hands = []
 		$.hand_timestamps = [] 
@@ -130,7 +144,6 @@ class area_phrases{
 		#iy = floor( $.y_range*y )
 		#iz = floor( $.z_range*z )
 		#ix = sx / $.settings["subslices"]
-		verbose("begin update")
 
 		lock($)
 
@@ -165,6 +178,7 @@ class area_phrases{
 				hand["play_next_segment"] = 1
 				hand["pos"][0] = x
 				hand["pos"][1] = y
+				verbose("Update stage 2")
 			}
 
 		}else if( hand["state"] == $.STATE_TO_FLAT || hand["state"] == $.STATE_FLAT ){
@@ -177,6 +191,15 @@ class area_phrases{
 				$.add_to_blendout( ph )
 
 				hand["ph"] = ''
+				# Set phrase to stage 2 phrase
+				ix = hand["sx"] / $.settings["subslices"]
+				iy = floor( $.y_range*y )
+				ph = $.settings["phrases2"][iy]
+				ph.pitch += $.settings["pitch_offsets"][ix] 
+				hand["ph_complete"] = ph
+				hand["ph_max_time"] = ph.length
+				print("Selection for stage 2:", ix, iy, ph)
+
 				hand["pos"] = [0=x,1=y,2=z]
 			}else{
 				if( abs( hand["sx"]-sx ) >= $.settings["subslice_minimal_distance"] ){
@@ -191,7 +214,6 @@ class area_phrases{
 		# reset counter (till inactivity reached)
 		#$.loop_count = 0
 		unlock($)
-		verbose("end update")
 	}
 
 	# protected
@@ -219,7 +241,41 @@ class area_phrases{
 			}
 
 			if( s == $.STATE_DEEP ){
+				if( "play_next_segment" in hand ){
+					delete( hand["play_next_segment"] )
+
+					# Frist, blend out notes without noteoff complement.
+					# Here, they has already the right volume and rescaling is not required.
+					ph_old = hand["ph"] { ??.type == NOTEON }
+					verbose("Old notes:", ph_old)
+					#ph_old.vol *= 0.8
+					#$.add_to_blendout( ph_old )
+					ph_old.type = NOTEOFF
+					ph_old.time = 0
+					ph_new_to_play |= ph_old
+						
+
+					tmp = extract1( hand["ph_complete"], hand["ph_time"], $.settings["segment_duration"])
+					ph = tmp["ph"]
+					#Increment time
+					if( tmp["t"] < hand["ph_max_time"] ){
+						hand["ph_time"] = tmp["t"]
+					}else{
+						hand["ph_time"] = 0
+					}
+
+					# Adapt volume 
+					z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
+					ph.vol *= z2
+
+					hand["ph"] = ph
+
+					ph_changes = filter_notes(ph_changes, ph)
+					ph_new_to_play |= ph
+				}
 			}elif( s == $.STATE_TO_DEEP ){
+				hand["state"] = $.STATE_DEEP
+
 			}elif( s == $.STATE_FLAT ){
 				ph = hand["ph"]
 
@@ -377,35 +433,42 @@ class area_phrases{
 }
 
 function test_phrases(){
-	print("Create object")
+	print("Create area_phrases object")
 	settings = settings_phrases() 
 	foo = new area_phrases(settings)
 
 	z = 0.24
-	foo.update(1,1,0.5,0.5,z)
 
-	#sleeptill(Now+500)
+	print("Test stage 1")
+	foo.update(1,1,0.5,0.5,z)
+	sleeptill(Now+300)
+	foo.update(1,1,0.1,0.1,z)
 
 	#z = 0.2
 	#foo.update(1,1,0.5,0.5,z)
 	sleeptill(Now+2b)
 
-	foo.update(1,1,0.1,0.1,z)
+	print("Test stage 2")
+	# Go into stage 2
+	foo.update(1,1,0.9,0.9,0.5)
 
+	# Move the hand
+	x2 = 0.0
 	for( i = 0; i< 20; i++){
-		z -= 0.02
-		sleeptill(Now+30)
-		foo.update(1,1,0.9,0.5,z)
+		z -= 0.01
+		x2 += 0.05
+		sleeptill(Now+20)
+		foo.update(1,1,x2,x2,z)
+	}
+	for( i = 0; i< 20; i++){
+		z += 0.01
+		x2 -= 0.05
+		sleeptill(Now+20)
+		foo.update(1,1,x2,x2,z)
 	}
 
-	sleeptill(Now+1000)
+	sleeptill(Now+500)
 
-	print("Delete object")
-	deleteobject(foo)
-
-	print(foo)
-	foo = new area_phrases(settings)
-	foo.update(1,1,0.5,0.5,z)
-	sleeptill(Now+40)
+	print("Delete area_phrases object")
 	deleteobject(foo)
 }

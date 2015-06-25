@@ -147,8 +147,8 @@ function extract1(ph,start_t, min_dt){
 	tmp_ph = ph {??.time >= begin}
 	tmp_ph = tmp_ph {??.time < end}
 	tmp_ph.time -= begin
-	ret[0] = tmp_ph
-	ret[1] = start_t+min_dt
+	ret["ph"] = tmp_ph
+	ret["t"] = start_t+min_dt
 	return(ret)
 }
 
@@ -167,8 +167,8 @@ function extract2(ph,start_t, min_dt){
 	if( tmp_ph_c1.dur-1 > min_dt ){
 		ret = extract2(ph,start_t, tmp_ph_c1.dur-1 )
 	}else{
-		ret[0] = tmp_ph
-		ret[1] = start_t+min_dt
+		ret["ph"] = tmp_ph
+		ret["t"] = start_t+min_dt
 	}
 
 	return(ret)
