@@ -1,6 +1,6 @@
 # 2015, TODO
 # Area contains two different depth stages.
-# Stage 1: Vague tone. This stage should inform the uses
+# Stage 1: Vague tone. This stage should inform the users
 #			about the presence of the area. Moreover, the xy-Position
 #			can be used to select and pitch the phrases of stage 2.
 # Stage 2: Track the midpoint of a hand and play the next note
@@ -12,7 +12,7 @@
 # Do set time distance use '+c, +et96' or 
 # ph = 'c e'; ph.type = NOTEON
 
-# Struct which stores the settings for area_phrases
+# Return struct which stores the settings for area_phrases
 function settings_phrases{
 	phA = 'e,c,ao2,go2';
 	phB = 'c, d, e, f, g, a, b'; phB.type = NOTEON
@@ -25,7 +25,7 @@ function settings_phrases{
 
 		# Deep stage, y axis used for selection.
 		"phrases2" = [0=phA, 1=phB],
-		"vol_range2" = ["low"=60, "high"=120],
+		"vol_range2" = ["low"=60, "high"=100],
 
 		# Barrier for entering of stage 1 
 		"z_depth_limit1" = 0.05,
@@ -40,7 +40,7 @@ function settings_phrases{
 		"normalize_channel" = 0 ,
 
 		# x axis defines can define different pitches stage 2 phrases.
-		"pitch_offsets" = [0=-3, 1=0, 2=1, 3=3],
+		"pitch_offsets" = [0=-8, 1=0],
 
 		# Minimal distance till next note will be played (in stage 2, [0,1]² plane)
 		"minimal_distance" = 0.2 * 0.2, # quadrature for l2-Norm.
@@ -198,7 +198,7 @@ class area_phrases{
 				ph.pitch += $.settings["pitch_offsets"][ix] 
 				hand["ph_complete"] = ph
 				hand["ph_max_time"] = ph.length
-				print("Selection for stage 2:", ix, iy, ph)
+				#print("Selection for stage 2:", ix, iy, ph)
 
 				hand["pos"] = [0=x,1=y,2=z]
 			}else{
@@ -246,7 +246,7 @@ class area_phrases{
 
 					# Frist, blend out notes without noteoff complement.
 					# Here, they has already the right volume and rescaling is not required.
-					ph_old = hand["ph"] { ??.type == NOTEON }
+					ph_old = hand["ph"] { ??.type == NOTEON && ??.vol > 0 }
 					verbose("Old notes:", ph_old)
 					#ph_old.vol *= 0.8
 					#$.add_to_blendout( ph_old )
@@ -264,7 +264,7 @@ class area_phrases{
 						hand["ph_time"] = 0
 					}
 
-					# Adapt volume 
+					# Adapt volume
 					z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
 					ph.vol *= z2
 
@@ -370,6 +370,7 @@ class area_phrases{
 	# private
 	method add_to_blendout(ph){
 		ph = ph { ??.type == NOTE || ??.type == NOTEON }
+		ph = ph { ??.vol > 0 }
 		ph.type = NOTEON
 		ph.time = 0
 		$.blendout |= ph
@@ -430,45 +431,13 @@ class area_phrases{
 
 	}
 
+	method help(parent){
+		print("area_phrases help")
+		for( child in $.inherited() ){
+			if( child.classof() == "area" ){
+				print( child.help($) )
+			}
+		}
+	}
 }
 
-function test_phrases(){
-	print("Create area_phrases object")
-	settings = settings_phrases() 
-	foo = new area_phrases(settings)
-
-	z = 0.24
-
-	print("Test stage 1")
-	foo.update(1,1,0.5,0.5,z)
-	sleeptill(Now+300)
-	foo.update(1,1,0.1,0.1,z)
-
-	#z = 0.2
-	#foo.update(1,1,0.5,0.5,z)
-	sleeptill(Now+2b)
-
-	print("Test stage 2")
-	# Go into stage 2
-	foo.update(1,1,0.9,0.9,0.5)
-
-	# Move the hand
-	x2 = 0.0
-	for( i = 0; i< 20; i++){
-		z -= 0.01
-		x2 += 0.05
-		sleeptill(Now+20)
-		foo.update(1,1,x2,x2,z)
-	}
-	for( i = 0; i< 20; i++){
-		z += 0.01
-		x2 -= 0.05
-		sleeptill(Now+20)
-		foo.update(1,1,x2,x2,z)
-	}
-
-	sleeptill(Now+500)
-
-	print("Delete area_phrases object")
-	deleteobject(foo)
-}

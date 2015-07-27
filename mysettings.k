@@ -505,17 +505,25 @@ function settingH2(loop){
 	#drums = drums()
 
 	# Test of stepfile class
-	files = []
-	files[0] = "music/midi/africa.mid"
-	files[1] = "music/midi/olaf/monkazimo.mid"
-	files[2] = "music/midi/hb3.mid"
-	#data = stepfile_data(files[rand(sizeof(files))])
-	data = stepfile_data(files[1])
-	stepfile1 = new area_stepfile(possible_notes0,durations2,30,128, data)
+	#files = []
+	#files[0] = "music/midi/africa.mid"
+	#files[1] = "music/midi/olaf/monkazimo.mid"
+	#files[2] = "music/midi/hb3.mid"
+	#data = stepfile_data(files[1])
+	#stepfile1 = new area_stepfile(possible_notes0,durations2,30,128, data)
+
+	# Test of area_phrases class
+	song = readmf("midi/beatles/Yesterday.mid")
+	sh = settings_phrases()
+	sh["z_depth_limit1"] = 0.05
+	sh["z_depth_limit2"] = 0.75
+	sh["vol_range1"] = ["low"=50,"high"=120]
+	sh["phrases2"] = [0=song]
+	phrases = new area_phrases(sh)
 
 	kstore = []
 	#areas = [ 0=piano_0, 1=piano_1 ]
-	areas = [ 0=piano_0, 1=stepfile1 ]
+	areas = [ 0=piano_0, 1=phrases ]
 
 	if(nargs() < 1 || loop != 0){
 		looper(areas, kstore)

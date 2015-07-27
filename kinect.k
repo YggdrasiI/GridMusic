@@ -25,6 +25,7 @@
 #include contrib/GridMusic/area_volume.k
 #include contrib/GridMusic/oscplayer.k
 #include contrib/GridMusic/sender.k
+##include contrib/GridMusic/tests.k
 
 ##include contrib/GridMusic/mysettings.k
 
