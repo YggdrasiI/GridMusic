@@ -34,11 +34,10 @@ class area_playmidi{
 		#$.loopid = task $.playloop()
 	}
 
-	method update_handler(areaid,handid,x,y,z) {
-		ix = floor( ($.mfiles_size)*x)
-		iy = floor( $.dimY*y)
-		iz = floor($.dimZ*z)
-		#print("depth: ",z,iz)
+	method update_handler(areaid, handid, xyz) {
+		ix = floor( ($.mfiles_size)*xyz[0])
+		iy = floor( $.dimY*xyz[1])
+		iz = floor($.dimZ*xyz[2])
 		if( iz < 1 ) $.hand_is_in = 0
 		if( iz < 2 || $.hand_is_in > 0 ) return()
 		lock($)
@@ -134,11 +133,10 @@ class area_playmidi_random {
 		#$.loopid = task $.playloop()
 	}
 
-	method update_handler(areaid,handid,x,y,z) {
+	method update_handler(areaid, handid, xyz) {
 		ix = rand( $.mfiles_size ) # random
-		iy = floor( $.dimY*y)
-		iz = floor($.dimZ*z)
-		#print("depth: ",z,iz)
+		iy = floor( $.dimY*xyz[1])
+		iz = floor($.dimZ*xyz[2])
 		if( iz < 1 ) $.hand_is_in = 0
 		if( iz < 2 || $.hand_is_in > 0 ) return()
 		lock($)

@@ -34,10 +34,10 @@ class area_gst123{
 		#$.loopid = task $.playloop()
 	}
 
-	method update_handler(areaid, handid,x,y,z) {
+	method update_handler(areaid, handid, xyz) {
 		ix = rand( $.mfiles_size ) # random
-		iy = floor( $.dimY*y)
-		iz = floor($.dimZ*z)
+		iy = floor( $.dimY*xyz[1])
+		iz = floor( $.dimZ*xyz[2])
 		lock($)
 		if( iz < 1 ) $.hand_is_in = 0
 

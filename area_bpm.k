@@ -22,11 +22,11 @@ class area_bpm{
 	}
 
 	# relative changing: left=slower right=faster, but bounded
-	method update_handler(areaid,handid,x,y,z) {
+	method update_handler(areaid, handid, xyz) {
 		if( handid > 1 ) return();
-		iz = floor( $.dimZ*z)
-		ix = floor( $.dimX*x)
-		iy = floor( $.dimY*y)
+		ix = floor( $.dimX*xyz[0])
+		iy = floor( $.dimY*xyz[1])
+		iz = floor( $.dimZ*xyz[2])
 
 		if( iz < 1 ) return();
 		lock($)
@@ -34,7 +34,7 @@ class area_bpm{
 		if( $.relative == 0){
 			bpm_ = $.bpm_min + $.bpm_stepsize*ix
 		}else{
-			if( x<0.5 && $.bpm_set>$.bpm_min ){
+			if( xyz[0]<0.5 && $.bpm_set>$.bpm_min ){
 				bpm_ = $.bpm_set*0.95
 			}else if( $.bpm_set<$.bpm_max){
 				bpm_ = $.bpm_set/0.95

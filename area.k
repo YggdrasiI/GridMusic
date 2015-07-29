@@ -29,10 +29,10 @@ class area {
 		$.loopid = -1
 	}
 
-	method update_handler(areaid,handid,x,y,z){
-		ix = floor($.dimX*x)
-		iy = floor($.dimY*y)
-		iz = floor($.dimZ*z)
+	method update_handler(areaid, handid, xyz) {
+		ix = floor( $.dimX*xyz[0])
+		iy = floor( $.dimY*xyz[1])
+		iz = floor( $.dimZ*xyz[2])
 		verbose("update (area class)", handid, ix, iy, iz)
 	}
 

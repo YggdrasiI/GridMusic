@@ -36,15 +36,15 @@ class area_systemcalls{
 		system(test)
 	}
 
-	method update_handler(areaid, handid,x,y,z) {
+	method update_handler(areaid, handid, xyz) {
 		ix = rand( $.mfiles_size ) # random
-		iy = floor( $.dimY*y)
-		iz = floor($.dimZ*z)
+		iy = floor( $.dimY*xyz[1])
+		iz = floor($.dimZ*xyz[2])
 		lock($)
 		if( iz < 1 ) $.hand_is_in = 0
 
 		if(0 && $.playing > -1 ){
-			$.volfactor = 2*y;
+			$.volfactor = 2*xyz[1];
 			$.setVol( GLOBALVOL )
 			sleeptill(Now+1b)
 		}
@@ -64,7 +64,7 @@ class area_systemcalls{
 			system($.cmd_start)
 
 			#set mp3 volume relative to global/midi volume
-			$.volfactor = 2*y;
+			$.volfactor = 2*xyz[1];
 			$.setVol( GLOBALVOL )
 			sleeptill(Now+1b)
 		}

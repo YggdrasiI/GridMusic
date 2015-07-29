@@ -18,43 +18,43 @@ function settings_phrases{
 	phB = 'c, d, e, f, g, a, b'; phB.type = NOTEON
 
 	set = [
-		# Flat stage, just first index used.
-		"phrases1" = [0='+c'],
-		#"vol_range1" = ["low"=20, "high"=40],
-		"vol_range1" = ["low"=40, "high"=100],
+	# Flat stage, just first index used.
+	"phrases1" = [0='+c'],
+	#"vol_range1" = ["low"=20, "high"=40],
+	"vol_range1" = ["low"=40, "high"=100],
 
-		# Deep stage, y axis used for selection.
-		"phrases2" = [0=phA, 1=phB],
-		"vol_range2" = ["low"=60, "high"=100],
+	# Deep stage, y axis used for selection.
+	"phrases2" = [0=phA, 1=phB],
+	"vol_range2" = ["low"=60, "high"=100],
 
-		# Barrier for entering of stage 1 
-		"z_depth_limit1" = 0.05,
+	# Barrier for entering of stage 1 
+	"z_depth_limit1" = 0.05,
 
-		# Barrier for entering of stage 2 
-		"z_depth_limit2" = 0.25,
+	# Barrier for entering of stage 2 
+	"z_depth_limit2" = 0.25,
 
-		# Normalize volume of all phrases, 0 disables
-		"normalize_volumes" = 1,
+	# Normalize volume of all phrases, 0 disables
+	"normalize_volumes" = 1,
 
-		# Restrict phrases on channel, 0 disables
-		"normalize_channel" = 0 ,
+	# Restrict phrases on channel, 0 disables
+	"normalize_channel" = 0 ,
 
-		# x axis defines can define different pitches stage 2 phrases.
-		"pitch_offsets" = [0=-8, 1=0],
+	# x axis defines can define different pitches stage 2 phrases.
+	"pitch_offsets" = [0=-8, 1=0],
 
-		# Minimal distance till next note will be played (in stage 2, [0,1]² plane)
-		"minimal_distance" = 0.2 * 0.2, # quadrature for l2-Norm.
+	# Minimal distance till next note will be played (in stage 2, [0,1]² plane)
+	"minimal_distance" = 0.2 * 0.2, # quadrature for l2-Norm.
 
-		# Segment length for each movement step
-		"segment_duration" = 1b,
+	# Segment length for each movement step
+	"segment_duration" = 1b,
 
-		# Divide range of slices
-		# Only detect slice changes if distance of sublices is > 1.
-		# [ range 1 ] [ range 2 ]
-		# [ 1  2  3 ] [ 4  5  6 ] 
-		"subslices" = 3,
-		"subslice_minimal_distance" = 2
-		]
+	# Divide range of slices
+	# Only detect slice changes if distance of sublices is > 1.
+	# [ range 1 ] [ range 2 ]
+	# [ 1  2  3 ] [ 4  5  6 ] 
+	"subslices" = 3,
+	"subslice_minimal_distance" = 2
+	]
 
 	return(set)
 }
@@ -78,7 +78,7 @@ class area_phrases{
 		$.STATE_FLAT = 2
 		$.STATE_TO_DEEP = 3
 		$.STATE_DEEP = 4
-		
+
 		$.blendout = ''
 
 		# Normalize array indizies to 0,...	
@@ -138,23 +138,23 @@ class area_phrases{
 	}
 
 	# protected
-	method update_handler(areaid,handid,x,y,z) {
+	method update_handler(areaid, handid, xyz) {
 		handid+=1000*areaid
-		sx = floor( $.x_range*x )
-		#iy = floor( $.y_range*y )
-		#iz = floor( $.z_range*z )
+		sx = floor( $.x_range*xyz[0] )
+		#iy = floor( $.y_range*xyz[1] )
+		#iz = floor( $.z_range*xyz[2] )
 		#ix = sx / $.settings["subslices"]
 
 		lock($)
 
 		# Add new hand or get stored hand
 		if( !(handid in $.hands) ){
-			if( z < $.settings["z_depth_limit1"] ){ 
+			if( xyz[2] < $.settings["z_depth_limit1"] ){ 
 				unlock($)
 				return()
 			}
 			hand = [ "state" = $.STATE_TO_FLAT,
-			"pos" = [0=x,1=y,2=z],
+			"pos" = xyz,
 			"sx" = sx,
 			"ph" = '', "ph_time" = 0 
 			]
@@ -164,7 +164,7 @@ class area_phrases{
 		}
 
 		hand["time"] = Now 
-		z_smooth = hand["pos"][2]*0.7 + z*0.3
+		z_smooth = hand["pos"][2]*0.7 + xyz[2]*0.3
 		hand["pos"][2] = z_smooth
 
 		# State transitions
@@ -172,17 +172,17 @@ class area_phrases{
 			# Note: "pos" array will be held constant until threshold is reached
 
 			# Compare positions
-			d1 = x-hand["pos"][0]
-			d2 = y-hand["pos"][1]
+			d1 = xyz[0]-hand["pos"][0]
+			d2 = xyz[1]-hand["pos"][1]
 			if( d1*d1 + d2*d2 > $.settings["minimal_distance"] ){
 				hand["play_next_segment"] = 1
-				hand["pos"][0] = x
-				hand["pos"][1] = y
+				hand["pos"][0] = xyz[0]
+				hand["pos"][1] = xyz[1]
 				verbose("Update stage 2")
 			}
 
 		}else if( hand["state"] == $.STATE_TO_FLAT || hand["state"] == $.STATE_FLAT ){
-			if( z > $.settings["z_depth_limit2"] ){ # z or z_smooth
+			if( xyz[2] > $.settings["z_depth_limit2"] ){ # z or z_smooth
 				hand["state"] = $.STATE_TO_DEEP
 
 				z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
@@ -193,20 +193,20 @@ class area_phrases{
 				hand["ph"] = ''
 				# Set phrase to stage 2 phrase
 				ix = hand["sx"] / $.settings["subslices"]
-				iy = floor( $.y_range*y )
+				iy = floor( $.y_range*xyz[1] )
 				ph = $.settings["phrases2"][iy]
 				ph.pitch += $.settings["pitch_offsets"][ix] 
 				hand["ph_complete"] = ph
 				hand["ph_max_time"] = ph.length
 				#print("Selection for stage 2:", ix, iy, ph)
 
-				hand["pos"] = [0=x,1=y,2=z]
+				hand["pos"] = xyz
 			}else{
 				if( abs( hand["sx"]-sx ) >= $.settings["subslice_minimal_distance"] ){
 					hand["play_new_slice"] = 1
 				}
 				hand["sx"] = sx
-				#hand["pos"] = [0=x,1=y,2=z] # without smooth
+				#hand["pos"] = xyz # without smooth
 			}
 
 		}
@@ -253,7 +253,7 @@ class area_phrases{
 					ph_old.type = NOTEOFF
 					ph_old.time = 0
 					ph_new_to_play |= ph_old
-						
+
 
 					tmp = extract1( hand["ph_complete"], hand["ph_time"], $.settings["segment_duration"])
 					ph = tmp["ph"]
@@ -328,7 +328,7 @@ class area_phrases{
 		ph_changes |= $.get_blendout(0.95)
 
 		if( sizeof(ph_new_to_play) > 0 )
-			verbose("play", ph_new_to_play)
+		verbose("play", ph_new_to_play)
 
 		# Change type to pressure 
 		ph_changes = pressure(ph_changes)

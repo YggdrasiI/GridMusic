@@ -18,7 +18,7 @@ class area_channelswitcher{
 		#$.push_off = $$.push_handler # same event
 	}
 
-	method push_handler(areaid, handid, x,y,z){
+	method push_handler(areaid, handid, xyz){
 		if( typeof(MAINCHANNEL) != "integer" ){
 			print("Warning, MAINCHANNEL was no integer.")
 			#return()

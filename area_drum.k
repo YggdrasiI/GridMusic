@@ -37,10 +37,10 @@ class area_drum{
 		#$.loopid = task $.playloop()
 	}
 
-	method update_handler(areaid,handid,x,y,z) {
-		#	ix = floor($.dimX*x) 
-		#	iy = floor($.dimY*y)
-		#	iz = floor($.dimZ*z)
+	method update_handler(areaid, handid, xyz) {
+		ix = floor( $.dimX*xyz[0])
+		iy = floor( $.dimY*xyz[1])
+		iz = floor( $.dimZ*xyz[2])
 		lock($)	
 		#if( typeof( $.hands[handid] != "array" ) )
 		#if( !(handid in $.hands) || Now - $.hands[handid]["timestamp"] > 100 )

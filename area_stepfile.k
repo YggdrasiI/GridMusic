@@ -43,12 +43,12 @@ class area_stepfile{
 		$.loopid = task $.playloop()
 	}
 
-	method update_handler(areaid,handid,x,y,z) {
+	method update_handler(areaid, handid, xyz) {
 		handid+=1000*areaid
 		lock($)
-		ix = floor( ($.possible_notes_size)*x)
-		iy = floor( ($.speeds_size)*z)
-		iz = floor($.vol_range*y)
+		ix = floor( ($.possible_notes_size)*xyz[0])
+		iy = floor( ($.speeds_size)*xyz[2])
+		iz = floor($.vol_range*xyz[1])
 		note = $.possible_notes[ ix  ]
 		note.vol = $.vol_min + iz
 		#note.vol = 100
@@ -59,7 +59,7 @@ class area_stepfile{
 		$.lastix = ix
 
 		# reset
-		#if(z>0.5) $.testfile_beat = 0;
+		#if(xyz[2]>0.5) $.testfile_beat = 0;
 
 		#if( $.hands[handid] == "" || ( note.pitch != ($.hands[handid]).pitch && Now-$.htimestamps[handid]>20 ))
 		if( !(handid in $.hands) || ( note.pitch != ($.hands[handid]).pitch && Now-$.htimestamps[handid]>20 )){

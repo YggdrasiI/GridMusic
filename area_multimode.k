@@ -29,7 +29,7 @@ class area_multimode{
 		handler = ["push_on"=$.push_handler_on,"push_off"=$.push_handler_off, "select"=$.select_handler,"replace"=$.multi_replace,"restore"=$.multi_restore]
 		$.inherit( new area_knob(7,7, kstore, handler, replace_ids, replace_areas) )
 
-		#$.select = $$.select_handler #warum verhält sich select anders als die push-Handler?! Ist doch zu 100% gleich!!! # ah, in den anderen Flächen ist $ verlinkt, aber es muss $$ sein.
+		#$.select = $$.select_handler 
 		#$.push_on = $.push_handler_on
 		#$.push_off = $.push_handler_off
 		$.piano_areas = piano_areas
@@ -65,9 +65,9 @@ class area_multimode{
 		unlock($)
 	}
 
-	method push_handler_on(areaid, handid, x,y,z){
-		ix = floor( ($.dimX)*x )
-		iy = floor( ($.dimY)*y )
+	method push_handler_on(areaid, handid, xyz){
+		ix = floor( $.dimX*xyz[0])
+		iy = floor( $.dimY*xyz[1])
 		#$.mode = $.mode_map[$.dimX*iy+ix]
 		if( ix < 3 ){
 			if( iy < 3 ) $.mode = 2
@@ -103,7 +103,7 @@ class area_multimode{
 		return(1)
 	}
 
-	method push_handler_off(areaid, handid, x,y,z){
+	method push_handler_off(areaid, handid, xyz){
 		realtime('d+o1c12v128', Now)
 		if( $.mode == 0 ){
 			verbose("Copy mode: End")
@@ -156,7 +156,7 @@ class area_multimode{
 		}
 	}
 
-	method select_handler(areaid, handid, x,y,z){
+	method select_handler(areaid, handid, xyz){
 		#print("Select handler of multimode", $, $$)
 		if( $.mode == 0 ){
 			verbose("Copy mode: Select")

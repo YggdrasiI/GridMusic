@@ -31,11 +31,11 @@ class area_setting_switcher{
 		return(s)
 	}
 
-	method update_handler(areaid,handid,x,y,z) {
+	method update_handler(areaid, handid, xyz) {
 		lock($)
-		ix = floor( ($.dimX)*x)
-		iy = floor( ($.dimY)*z)
-		iz = floor( ($.dimZ)*y)
+		ix = floor( $.dimX*xyz[0])
+		iy = floor( $.dimY*xyz[2])
+		iz = floor( $.dimZ*xyz[1])
 
 		if( iz > 2 && ($.active == 0 || Now - $.timestamp > 1b) ){
 			$.active = 1
@@ -66,7 +66,7 @@ class area_setting_switcher{
 		unlock($)
 	}
 
-	method switch_handler(areaid, handid, x,y,z){
+	method switch_handler(areaid, handid, xyz){
 		lock($)
 		print("Selected area: ",areaid)
 
@@ -126,18 +126,18 @@ class area_selector{
 		$.twait = Now+1b
 	}
 
-	method update_handler(areaid,handid,x,y,z) {
-		ix = floor( ($.dimX)*x)
-		iy = floor( ($.dimY)*z)
-		iz = floor( ($.dimZ)*y)
+	method update_handler(areaid, handid, xyz) {
+		ix = floor( $.dimX*xyz[0])
+		iy = floor( $.dimY*xyz[2])
+		iz = floor( $.dimZ*xyz[1])
 
 		lock($)
 		if( iz > 2 && ($.active == 0 || Now - $.timestamp>1b ) && Now>$.twait ){
 			$.active = 1
 			$.timestamp = Now
 			#callback
-			#task $.select(areaid, handid, x,y,z) 
-			$.obj.switch_handler(areaid, handid, x,y,z)
+			#task $.select(areaid, handid, xyz) 
+			$.obj.switch_handler(areaid, handid, xyz)
 			#sleeptill(Now+1b)
 		} else if( iz < 2){
 			$.active = 0
@@ -145,7 +145,7 @@ class area_selector{
 		unlock($)
 	}
 
-	method switch_handler(areaid, handid, x,y,z){
+	method switch_handler(areaid, handid, xyz){
 		print("Selected area: ",areaid," (default handler)")
 	}
 

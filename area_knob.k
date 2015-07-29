@@ -78,17 +78,15 @@ class area_knob{
 
 	}
 
-	method update_handler(areaid,handid,x,y,z) {
-		#ix = floor( ($.dimX)*x )
-		#iy = floor( ($.dimY)*z )
-		iz = floor( ($.dimZ)*z )
+	method update_handler(areaid, handid, xyz) {
+		iz = floor( $.dimZ*xyz[2])
 		td = Now-$.last_refresh_time;
 		#		lock($)
 		if( $.pushed == 1 && ((iz < 2 && td > 1b && areaid == $.lastid) || td > 3b ) ){
 			#change push flag if last pushed area is leaved or some time elapsed
 			$.pushed = 0
 			if( $.lastid == $.knobid ){
-				$$.release($.knobid, handid, x,y,z) #attention, handid matching in general to areaid, not knobid.
+				$$.release($.knobid, handid, xyz) #attention, handid matching in general to areaid, not knobid.
 				#$.last_refresh_time = Now
 			}
 		}
@@ -102,14 +100,14 @@ class area_knob{
 				if( $.knobid == -1 || $.knobid == areaid){
 					#the knob is pushed.
 					if( $.active == 0){
-						if( $$.push_on(areaid, handid, x,y,z) ){
+						if( $$.push_on(areaid, handid, xyz) ){
 							$.active = 1
 							# Save id of this area
 							$.knobid = areaid
 							$$.replace()
 						}
 					}else{
-						if( $$.push_off(areaid, handid, x,y,z)){
+						if( $$.push_off(areaid, handid, xyz)){
 							$$.restore()
 							$.active = 0
 							$.knobid = -1
@@ -120,7 +118,7 @@ class area_knob{
 					#print("Select area !", areaid, " Knob is ", $.knobid);
 					verbose("Select area !", areaid, $, $$);
 					realtime('do1c12v128', Now)
-					$$.select(areaid,handid,x,y,z)
+					$$.select(areaid, handid, xyz)
 				}
 			}
 		}
@@ -153,7 +151,7 @@ class area_knob{
 		}
 	}
 
-	method default_push_handler(areaid, handid, x,y,z){
+	method default_push_handler(areaid, handid, xyz){
 		if( !$.active ){
 			verbose("Knob activated (default handler).", areaid)
 			realtime('co3v128d200', Now)
@@ -164,11 +162,11 @@ class area_knob{
 		return(1)
 	}
 
-	method default_release_handler(areaid, handid, x,y,z){
+	method default_release_handler(areaid, handid, xyz){
 		verbose("Knob released (default handler).")
 	}
 
-	method default_select_handler(areaid,handid,x,y,z){
+	method default_select_handler(areaid, handid, xyz){
 		verbose("Area ",areaid," selected. (default handler)");
 		realtime('go2v128d100', Now)
 	}

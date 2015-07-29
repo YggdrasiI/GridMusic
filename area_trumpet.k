@@ -42,14 +42,14 @@ class area_trumpet{
 		$.loopid = task $.playloop()
 	}
 
-	method update_handler2(areaid,handid,x,y,z) {
+	method update_handler2(areaid, handid, xyz) {
 		#lock($)
-		z *= 1.4 
-		if( z>1) z = 1
+		xyz[2] *= 1.4 
+		if( xyz[2]>1) xyz[2] = 1
 
-		ix = floor( $.dimX*x )
-		iz = floor($.dimZ*z )#vol
-		#iz = floor($.dimZ*z*3 )#vol
+		ix = floor( $.dimX*xyz[0] )
+		iz = floor($.dimZ*xyz[2] )#vol
+		#iz = floor($.dimZ*xyz[2]*3 )#vol
 		#if(iz>$.vol_range) iz = $.vol_range
 		#inote = integer(ix/3)
 		inote = floor(ix/3)
