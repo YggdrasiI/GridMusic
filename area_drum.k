@@ -1,4 +1,19 @@
-# react on velocity and depth of hand
+### React on velocity and maximal depth of hand
+#
+#
+
+# Return struct which stores the settings for area_drum
+function settings_piano{
+	set = [
+	# Notes for slices. Phrases or midi filenames.
+	"phrases" = [0 = 'co2c10, co1c10'],
+
+	# Unused variable for volume normalization of input files
+	"volfactor" = 1.0
+	]
+	return(set)
+}
+
 class area_drum{
 	method init(mfilenames, volfactor) {
 
@@ -38,9 +53,9 @@ class area_drum{
 	}
 
 	method update_handler(areaid, handid, xyz) {
-		ix = floor( $.dimX*xyz[0])
-		iy = floor( $.dimY*xyz[1])
-		iz = floor( $.dimZ*xyz[2])
+		ix = floor( $.dim[0]*xyz[0])
+		iy = floor( $.dim[1]*xyz[1])
+		iz = floor( $.dim[2]*xyz[2])
 		lock($)	
 		#if( typeof( $.hands[handid] != "array" ) )
 		#if( !(handid in $.hands) || Now - $.hands[handid]["timestamp"] > 100 )

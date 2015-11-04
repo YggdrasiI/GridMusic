@@ -47,9 +47,9 @@ class area_trumpet{
 		xyz[2] *= 1.4 
 		if( xyz[2]>1) xyz[2] = 1
 
-		ix = floor( $.dimX*xyz[0] )
-		iz = floor($.dimZ*xyz[2] )#vol
-		#iz = floor($.dimZ*xyz[2]*3 )#vol
+		ix = floor( $.dim[0]*xyz[0] )
+		iz = floor($.dim[2]*xyz[2] )#vol
+		#iz = floor($.dim[2]Z*xyz[2]*3 )#vol
 		#if(iz>$.vol_range) iz = $.vol_range
 		#inote = integer(ix/3)
 		inote = floor(ix/3)

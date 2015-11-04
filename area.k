@@ -7,13 +7,16 @@
 # - $.play (output handle).
 class area {
 	method init(dimX,dimY,dimZ) {
-		if( nargs() < 3 ) dimZ = 1
-		if( nargs() < 2 ) dimY = 1
-		if( nargs() < 1 ) dimX = 1
+		if( nargs() == 1 && typeof(dimX) == "array" ){
+			$.dim = dimX
+		}else{
+			if( nargs() < 3 ) dimZ = 1
+			if( nargs() < 2 ) dimY = 1
+			if( nargs() < 1 ) dimX = 1
+			$.dim = [0=dimX,1=dimY,2=dimZ]
+		}
+
 		verbose("create area")
-		$.dimX = dimX
-		$.dimY = dimY
-		$.dimZ = dimZ
 		$.settings = []
 
 		# Called by TUIO reciver class
@@ -30,9 +33,9 @@ class area {
 	}
 
 	method update_handler(areaid, handid, xyz) {
-		ix = floor( $.dimX*xyz[0])
-		iy = floor( $.dimY*xyz[1])
-		iz = floor( $.dimZ*xyz[2])
+		ix = floor( $.dim[0]*xyz[0])
+		iy = floor( $.dim[1]*xyz[1])
+		iz = floor( $.dim[2]*xyz[2])
 		verbose("update (area class)", handid, ix, iy, iz)
 	}
 
@@ -48,7 +51,18 @@ class area {
 	}
 
 	method get_settings() {
-		return( $$.settings )
+		return($$.settings)
+	}
+
+	# Mapping of [0,1]³ onto [0,dimX]x[0,dimY]x[0,dimZ]
+	# for indizies = [0=0,1=1,2=2]. Other indizies could be used to swap dimensions or
+	# to derive just one compontent.
+	method get_ixyz(xyz, indizies ) {
+		i = []
+		for( k in indizies ){
+			i[k] = floor( $.dim[indizies[k]] * xyz[indizies[k]] ) 
+		}
+		return(i)
 	}
 
 	# Print information about class
@@ -63,7 +77,7 @@ class area {
 			print("Abstract class area.")
 			print("Call help method of derived classes\n for more detailed information.\n")
 		}
-		print(" Number of slices: \n", $.dimX, "\thorizontal,\n", $.dimY, "\tvertical,\n", $.dimZ, "\tdepth")
+		print(" Number of slices: \n", $.dim[0], "\thorizontal,\n", $.dim[1], "\tvertical,\n", $.dim[2], "\tdepth")
 	}
 
 	method delete() {

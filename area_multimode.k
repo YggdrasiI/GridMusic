@@ -66,9 +66,9 @@ class area_multimode{
 	}
 
 	method push_handler_on(areaid, handid, xyz){
-		ix = floor( $.dimX*xyz[0])
-		iy = floor( $.dimY*xyz[1])
-		#$.mode = $.mode_map[$.dimX*iy+ix]
+		ix = floor( $.dim[0]*xyz[0])
+		iy = floor( $.dim[1]*xyz[1])
+		#$.mode = $.mode_map[$.dim[0]*iy+ix]
 		if( ix < 3 ){
 			if( iy < 3 ) $.mode = 2
 			else if( iy > 3 ) $.mode = 0

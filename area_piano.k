@@ -48,18 +48,18 @@ class area_piano{
 
 			$.vol_min = settings["vol_range"]["low"]
 			$.vol_max = settings["vol_range"]["high"]
-			$.vol_range = vol_max-vol_min
+			$.vol_range = $.vol_max - $.vol_min
 
-			$.inherit( new area($.possible_notes_size,$.durations_size,$.vol_range) )
+			dim = [ 
+			$.orientation[0] = $.possible_notes_size,
+			$.orientation[1] = $.durations_size,
+			$.orientation[2] = $.vol_range
+			]
+			$.inherit( new area(dim) )
 
-			$.loop_beats = 2b
-			$.loopdur = $.durations[0]
-			$.loop_count = 0
 			$.hands = []
 			$.xis = []
 
-			$.last_seq = Now
-			$.sequenz = ''
 			$.last_note = ''
 			$.last_refresh = Now
 
@@ -71,20 +71,15 @@ class area_piano{
 
 		method update_handler(areaid, handid, xyz) {
 			lock($)
-			ix = floor( ($.possible_notes_size)*xyz[0])
-			iy = floor( ($.dimY)*xyz[2])
-			iz = floor($.dimZ*xyz[1])
-			note = $.notes[ ix  ]
-			note.vol = $.vol_min + iz
+			ixyz = $.get_ixyz(xyz, $.orientation)
+			note = $.notes[ ixyz[0]  ]
+			note.vol = $.vol_min + ixyz[2]
 			#note.vol = 100
 			#print("Volume = ", note.vol )
-			note.dur = $.durations[ iy ]
+			note.dur = $.durations[ ixyz[1] ]
 			#print("Note.chan = ",note.chan )
-			#$.loop_beats = $.durations[ iz ]
-			# i f( $.blocktimes[handid] < Now )
-			if( $.xis[handid] != ix ){
-				#$.hands[handid] = ""
-				$.xis[handid] = ix
+			if( $.xis[handid] != ixyz[0] ){
+				$.xis[handid] = ixyz[0]
 				$.last_note = ''
 			}
 
@@ -92,7 +87,7 @@ class area_piano{
 			if( $.hands[handid] != "" && $.hands[handid].vol > note.vol ){
 				note.vol = $.hands[handid].vol
 				$.hands[handid] = note
-				$.xis[handid] = ix
+				$.xis[handid] = ixyz[0]
 			}else{
 				$.hands[handid] = note
 			}
@@ -102,9 +97,6 @@ class area_piano{
 				$.clear()
 			}
 
-			# reset counter (till inactivity reached)
-			$.loop_count = 0
-			#print("area update done. Indizes:", ix, iy, iz)
 			unlock($)
 		}
 
@@ -115,41 +107,29 @@ class area_piano{
 		}
 
 		method play_handler() {
-			if(Now - $.last_seq > $.loop_beats && $.loop_count>0){
-				lock($)
-				sequenz = $.sequenz
-				$.last_seq = Now
-				$.sequenz = ''
-				$.loop_count -= 1
-				unlock($)
-
-				#				realtime(sequenz, Now)
-				#	print("Play sequence")
-			}
 
 			if( sizeof($.hands) > 0 ){
 				lock($)
 				note = $.get_note()
-				# remove notes of the last tick
 
+				# remove notes of the last tick
 				#noteb = note - $.last_note
-				#ignore volume differences
+				# as above, but ignore volume differences
 				noteb = filter_notes(note,$.last_note)
-				#noteb = note
 
 				$.last_note = note
-				$.sequenz += noteb
+
 				#clear notes
 				$.hands = []
 				unlock($)
 
 				#print("Play note", noteb)
-				# mit Now sind verschiedene Areas nicht ganz syncron
+				# Different areas are not 100% synchron if we use "Now".
 				ph = $.modify_note(noteb)
 				realtime( ph, Now)
+
 				if(KSTORE["record_active"]) glob_record( ph ) 
 				#sleeptill(Now+noteb.dur)
-				#sleeptill(Now+20)
 				sleeptill(Now+10)
 			}else{
 				if( Now - $.last_refresh > 46 ){
@@ -163,6 +143,7 @@ class area_piano{
 			}
 		}
 
+		# Join nodes of all hands.
 		method get_note(){
 			note = ''
 			for( n in $.hands ){
@@ -171,6 +152,7 @@ class area_piano{
 			return(note)
 		}
 
+		# Optinal decorations
 		method modify_note(note){
 			#note.chan = MAINCHANNEL
 			#note.vol *= GLOBALVOL/128.0

@@ -29,7 +29,7 @@
 
 ##include contrib/GridMusic/mysettings.k
 
-VERBOSE = 0 # print some debug messages
+VERBOSE = 1 # print some debug messages
 OSCPORT = 3335
 GLOBALVOL = 80 
 
@@ -106,19 +106,30 @@ function settingExample(loop){
 #
 function settingPiano(loop){
 
-	durations = [0=1b,1=4b,2=8b,3=16b,4=32b,5=32b]
+	settings = settings_piano()
+	settings["durations"] = [0=1b,1=4b,2=8b,3=16b,4=32b,5=32b]
+	settings["vol_range"] = ["low" = 50, "high" = 128]
+
 	s2 = durarr('co2')
 	s3 = durarr('c')
 	s4 = durarr('co4')
 	s5 = durarr('co5')
 
-	piano_c = new area_piano([0=s3[0],1=s4[0],2=s5[0]],durations,50,128)
-	piano_d = new area_piano([1=s3[1],1=s4[1],2=s5[1]],durations,50,128)
-	piano_e = new area_piano([2=s3[2],1=s4[2],2=s5[2]],durations,50,128)
-	piano_f = new area_piano([3=s3[3],1=s4[3],2=s5[3]],durations,50,128)
-	piano_g = new area_piano([4=s2[4],1=s3[4],2=s4[4]],durations,50,128)
-	piano_a = new area_piano([5=s2[5],1=s3[5],2=s4[5]],durations,50,128)
-	piano_b = new area_piano([6=s2[6],1=s3[6],2=s4[6]],durations,50,128)
+	# Same setting for each pad, but different notes
+	settings["notes"] = [0=s3[0],1=s4[0],2=s5[0]]
+	piano_c = new area_piano(settings)
+	settings["notes"] = [1=s3[1],1=s4[1],2=s5[1]]
+	piano_d = new area_piano(settings)
+	settings["notes"] = [2=s3[2],1=s4[2],2=s5[2]]
+	piano_e = new area_piano(settings)
+	settings["notes"] = [3=s3[3],1=s4[3],2=s5[3]]
+	piano_f = new area_piano(settings)
+	settings["notes"] = [4=s2[4],1=s3[4],2=s4[4]]
+	piano_g = new area_piano(settings)
+	settings["notes"] = [5=s2[5],1=s3[5],2=s4[5]]
+	piano_a = new area_piano(settings)
+	settings["notes"] = [6=s2[6],1=s3[6],2=s4[6]]
+	piano_b = new area_piano(settings)
 
 	#bpm_area = new area_bpm( 30, 190, 20, 1)
 	volume_area = new area_volume( 20, 127, 5)
@@ -323,8 +334,7 @@ class looperobj {
 				#if( typeof($.areas[areaid]) == "object") #high costs?!
 				if( $.areas[areaid] != -1)
 				#if( areaid in $.areas )
-				$.areas[areaid].update(areaid,handid,d[3],d[4],depth)
-				#$.areas[areaid].update(areaid,handid,d[3],depth,d[4])
+				$.areas[areaid].update(areaid,handid,[0=d[3],1=d[4],2=depth])
 			}
 		}else if ( d[1] == "fseq" ){
 			#print("fseq message")
@@ -335,12 +345,10 @@ class looperobj {
 		while ( (d=get($.oscf)) != Eof ) {
 			#print("osctask got d=",d)
 
-			#osc messages are bundled -> array structure
+			# Bundled OSC messages leads to array structure.
 			if( typeof(d[0]) == "array" ){
-				#for( dd in d )
-				#faster: use elements key to avoid typeof check
-				#require index enumeration 0,1,...
 				dnr = d["elements"]
+				# Assume index enumeration 0,1,...
 				for( i=0 ; i<dnr ; i++){
 					#print( d[i] )
 					if( d[i][0] == "/tuio/25Dblb" ){
@@ -352,78 +360,73 @@ class looperobj {
 			}
 
 			lock($)
-			#if ( addr ~~ "/tuio/25Dcur.*" ) {
-				#	print("25cur empfangen!")
-				#} else if ( addr ~~ "/tuio/25Dobj.*" ) {
-					#	print("25obj empfangen!")
-					#}
 
-					$.lastosc = Now
-					unlock($)
-				}
-			}
-
-			method XXreplace_areas(new_areas){
-				for( i in new_areas) {
-					tmp = $.areas[i]
-					$.areas[i] = new_areas[i]
-					deleteobject(tmp)
-				}
-			}
-
-			method get_areas(){
-				return($.areas)
-			}
-
-			method set_areas(areas){
-				#lock($)#already locked
-				$.areas = areas
-				verbose("Set areas",$.areas)
-				#unlock($)
-			}
-
-			method delete {
-				if($.oscf > -1){
-					close($.oscf)
-				}
-				kill($.osctid)
-
-				for( i=0 ; i<$.areas_size ; i++ ){
-					verbose("Del area ",i)
-					deleteobject($.areas[i])
-				}
-				$.areas = []
-			}
+			$.lastosc = Now
+			unlock($)
 		}
+	}
 
-		########## END MAIN CLASS ####################
-
-		# Add phrase to global record
-		function glob_record(ph){
-			if( KSTORE["record"] == '' ){
-				KSTORE["record_starttime"]  = Now
-				KSTORE["record"] = ph
-				return()
-			}
-
-			td = Now - KSTORE["record_starttime"] 
-			ph.time += td
-			KSTORE["record"] |= ph
+	method XXreplace_areas(new_areas){
+		for( i in new_areas) {
+			tmp = $.areas[i]
+			$.areas[i] = new_areas[i]
+			deleteobject(tmp)
 		}
+	}
 
-		function glob_record_test(ph){
-			td = 2b 
-			ph2 = ''
-			for( n in ph){
-				n.time += td
-				ph2 |= n
-			}
-			return(ph2)
+	method get_areas(){
+		return($.areas)
+	}
+
+	method set_areas(areas){
+		#lock($)#already locked
+		$.areas = areas
+		verbose("Set areas",$.areas)
+		#unlock($)
+	}
+
+	method delete {
+		if($.oscf > -1){
+			close($.oscf)
 		}
-		function glob_record_test2(ph){
-			td = 2b 
-			ph2 = ph
-			ph2.time += td
-			return(ph2)
+		kill($.osctid)
+
+		for( i=0 ; i<$.areas_size ; i++ ){
+			verbose("Del area ",i)
+			deleteobject($.areas[i])
 		}
+		$.areas = []
+	}
+}
+
+########## END MAIN CLASS ####################
+
+# Add phrase to global record
+function glob_record(ph){
+	if( KSTORE["record"] == '' ){
+		KSTORE["record_starttime"]  = Now
+		KSTORE["record"] = ph
+		return()
+	}
+
+	td = Now - KSTORE["record_starttime"] 
+	ph.time += td
+	KSTORE["record"] |= ph
+}
+
+function glob_record_test(ph){
+	td = 2b 
+	ph2 = ''
+	for( n in ph){
+		n.time += td
+		ph2 |= n
+	}
+	return(ph2)
+}
+function glob_record_test2(ph){
+	td = 2b 
+	ph2 = ph
+	ph2.time += td
+	return(ph2)
+}
 

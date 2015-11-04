@@ -1,4 +1,5 @@
-# Abstract class for knob.
+### Abstract class for knob. Could be used for triggers, etc.
+#
 # replace_ids can define areaids which will replaced by this object or the objects in replace_areas.
 #  The active areas in the osc looper will replaced it the knob is active.
 # There are four events:
@@ -14,10 +15,9 @@
 #
 #
 # Attention: The line	$.replace_areas[id] = $ 
-# in the knob contructor has a pitfall. If you inherit and call knobs
-# init() $ points to the knob object. To avoid this set up the replace_areas
-# array before you call area_knob's init().
-#
+# in the knob contructor has a pitfall. If you inherit and call knob's
+# init() method, $ points to the knob object, but not $$.
+# To avoid this set up the replace_areas array before you call area_knob's init().
 #
 # Implemtations of knob class:
 # area_channelswitcher
@@ -27,7 +27,7 @@
 
 class area_knob{
 	method init(dimX, dimY, kstore, handler, replace_ids, replace_areas) {
-		$.inherit( new area(dimX,dimY,5) )
+		$.inherit( new area(dimX, dimY, 5) )
 		$.active = 0
 		$.pushed = 0
 		$.lastid = -1
@@ -48,7 +48,7 @@ class area_knob{
 				id = $.replace_ids[i]
 				if( typeof($.replace_areas[id]) != "object" ){
 					#if( id in $.replace_areas )
-					print("sollte nicht erreicht werden.")
+					print("Should not be reached.")
 					$.replace_areas[id] = $  # $$, not $! Das ist hier aber nicht mgl.
 				}
 			}
@@ -79,7 +79,7 @@ class area_knob{
 	}
 
 	method update_handler(areaid, handid, xyz) {
-		iz = floor( $.dimZ*xyz[2])
+		iz = floor($.dimZ*xyz[2])
 		td = Now-$.last_refresh_time;
 		#		lock($)
 		if( $.pushed == 1 && ((iz < 2 && td > 1b && areaid == $.lastid) || td > 3b ) ){

@@ -33,9 +33,9 @@ class area_setting_switcher{
 
 	method update_handler(areaid, handid, xyz) {
 		lock($)
-		ix = floor( $.dimX*xyz[0])
-		iy = floor( $.dimY*xyz[2])
-		iz = floor( $.dimZ*xyz[1])
+		ix = floor( $.dim[0]*xyz[0])
+		iy = floor( $.dim[1]*xyz[2])
+		iz = floor( $.dim[2]*xyz[1])
 
 		if( iz > 2 && ($.active == 0 || Now - $.timestamp > 1b) ){
 			$.active = 1
@@ -127,9 +127,9 @@ class area_selector{
 	}
 
 	method update_handler(areaid, handid, xyz) {
-		ix = floor( $.dimX*xyz[0])
-		iy = floor( $.dimY*xyz[2])
-		iz = floor( $.dimZ*xyz[1])
+		ix = floor( $.dim[0]*xyz[0])
+		iy = floor( $.dim[1]*xyz[2])
+		iz = floor( $.dim[2]*xyz[1])
 
 		lock($)
 		if( iz > 2 && ($.active == 0 || Now - $.timestamp>1b ) && Now>$.twait ){

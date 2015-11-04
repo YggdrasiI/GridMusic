@@ -21,8 +21,11 @@ function kinect(func){
 	#enable outport 1 on startup
 	outalsa = outport(1)
 	mapport(0,outalsa) 
+
+	# Mapping from setting key (string) to start function.
 	fhandles=["settingTest"=(settingTest)
 	,"settingPiano"=(settingPiano)
+	,"piano"=(settingPiano)
 	,"settingGst"=(settingGst)
 	#	,"kinectSet1"=(kinectSet1)
 	#	,"kinectSet2"=(kinectSet2)

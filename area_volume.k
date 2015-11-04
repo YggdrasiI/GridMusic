@@ -25,9 +25,9 @@ class area_volume{
 
 	method update_handler(areaid, handid, xyz) {
 		if( handid > 1 ) return();
-		ix = floor( $.dimX*xyz[0])
-		iy = floor( $.dimY*xyz[1])
-		iz = floor( $.dimZ*xyz[2])
+		ix = floor( $.dim[0]*xyz[0])
+		iy = floor( $.dim[1]*xyz[1])
+		iz = floor( $.dim[2]*xyz[2])
 		lock($)
 		vol_ = $.vol_min + $.vol_stepsize*ix
 

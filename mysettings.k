@@ -490,16 +490,47 @@ function settingHalloween(loop){
 # beider Klassen.
 function settingH2(loop){
 
-	speeds = [0=2b,1=1b,2=48,3=24,4=12]
-	durations = [0=1b,1=4b,2=8b,3=16b,4=32b,5=32b]
-	durations2 = [0=1b,1=2b,2=2b,3=2b,4=2b,5=2b]
+	N = 5
+	s = scale_mixolydian()
+	s2 = s 
+	sChanB = s
+	s.pitch += 33
+	s2.pitch += 48
+	s = s + s + s2
+	chanA = picknote(s, N)
 
-	possible_notes0 = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
-	piano_0 = new area_piano(possible_notes0,durations2,30,128)
+	sChanB.chan = 2
+	sChanB.pitch += 48
+	sChanB.vol -= 20
+	chanB = picknote(sChanB,N)
+	chanB.time += 3b
+	chanB.dur = 5b
+	i = 0
+	split_song = []
+	for( n in (chanA|chanB)){
+		split_song[i] = n#chanA[n]|chanB[n]
+		i = i + 1
+	}
+
+	settings = settings_piano()
+	#settings["notes"] = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
+	settings["notes"] = split_song
+	settings["durations"] = [0=1b,1=2b,2=2b,3=2b,4=2b,5=2b]
+	settings["vol_range"] = ["low" = 30, "high" = 120]
+	settings["orientation"] = [0=0,1=1,2=2]
+
+	piano_0 = new area_piano(settings)
 
 	# Jeweils zwei Noten, etwas zeitversetzt
-	#impDream5 = [0='co4,fo3t96', 1='e-o4,go3t96', 2='fo4,b-o3t96', 3='go4,co4t96', 4='b-o4,e-o4t96']
+	impDream5 = [0='co4,fo3t96', 1='e-o4,go3t96', 2='fo4,b-o3t96', 3='go4,co4t96', 4='b-o4,e-o4t96']
 	#piano_1 = new area_trumpet(impDream5,10,101)
+
+	settings_1 = settings_piano()
+	settings["notes"] = impDream5
+	settings_1["durations"] = [0=1b,1=2b,2=2b,3=2b,4=2b,5=2b]
+	settings_1["vol_range"] = ["low" = 30, "high" = 120]
+	settings_1["orientation"] = [0=1,1=0,2=2]
+	piano_1 = new area_piano(settings_1)
 
 	# Test of playmidi class
 	#drums = drums()
@@ -512,18 +543,23 @@ function settingH2(loop){
 	#data = stepfile_data(files[1])
 	#stepfile1 = new area_stepfile(possible_notes0,durations2,30,128, data)
 
+	tonleiter = 'c, d, e, f, g, a, b, cc4'
+	tonleiter.chan = 4
+
 	# Test of area_phrases class
-	song = readmf("midi/beatles/Yesterday.mid")
+	#song = readmf("midi/beatles/Yesterday.mid")
+
 	sh = settings_phrases()
 	sh["z_depth_limit1"] = 0.05
-	sh["z_depth_limit2"] = 0.75
+	#sh["z_depth_limit2"] = 0.75
+	sh["z_depth_limit2"] = 0.06
 	sh["vol_range1"] = ["low"=50,"high"=120]
-	sh["phrases2"] = [0=song]
+	#sh["phrases2"] = [0=song]
+	sh["phrases2"] = [0=tonleiter]
 	phrases = new area_phrases(sh)
 
 	kstore = []
-	#areas = [ 0=piano_0, 1=piano_1 ]
-	areas = [ 0=piano_0, 1=phrases ]
+	areas = [ 0=piano_1, 1=piano_0, 2=phrases, 3=phrases ]
 
 	if(nargs() < 1 || loop != 0){
 		looper(areas, kstore)
