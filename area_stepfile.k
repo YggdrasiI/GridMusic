@@ -12,7 +12,7 @@ class area_stepfile{
 		$.speeds_size = sizeof($.speeds)-1
 
 		$.vol_min = vol_min
-		$.vol_max = vol_max	
+		$.vol_max = vol_max
 		$.vol_range = vol_max-vol_min
 
 		$.inherit( new area($.possible_notes_size,$.speeds_size,$.vol_range) )
@@ -67,7 +67,7 @@ class area_stepfile{
 			$.toplay += 1
 		}
 		#if( $.blocktimes[handid] < Now )
-		# select maximal volume reached in the time intervall (till $.hands is reset) 
+		# select maximal volume reached in the time intervall (till $.hands is reset)
 		#if( $.hands[handid] != "" && $.hands[handid].vol > note.vol )
 		if( (handid in $.hands) && $.hands[handid].vol > note.vol ){
 			note.vol = $.hands[handid].vol

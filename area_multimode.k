@@ -29,12 +29,12 @@ class area_multimode{
 		handler = ["push_on"=$.push_handler_on,"push_off"=$.push_handler_off, "select"=$.select_handler,"replace"=$.multi_replace,"restore"=$.multi_restore]
 		$.inherit( new area_knob(7,7, kstore, handler, replace_ids, replace_areas) )
 
-		#$.select = $$.select_handler 
+		#$.select = $$.select_handler
 		#$.push_on = $.push_handler_on
 		#$.push_off = $.push_handler_off
 		$.piano_areas = piano_areas
 		$.mode = -2 #above code set mode in parent class. Thus avoid the usage of this var.
-		$.playing_phrases = [] 
+		$.playing_phrases = []
 		#reaction time for start/stop playing phrases
 		$.playing_phrases_beat_len = 1b
 
@@ -89,8 +89,8 @@ class area_multimode{
 			#realtime('c')
 		}else if( $.mode == 1 ){
 			verbose("Record mode: Start")
-			$.kstore["record"] = '' 
-			$.kstore["record_starttime"] = Now 
+			$.kstore["record"] = ''
+			$.kstore["record_starttime"] = Now
 			$.kstore["record_active"] = 1
 			#realtime('d')
 		}else if( $.mode == 2 ){
@@ -165,7 +165,7 @@ class area_multimode{
 				verbose("Area ",areaid," is target")
 				if( $.copy_source != $.copy_target ){
 					#copy source to target.
-					$.kstore["clipboard"][$.copy_target] = $.kstore["clipboard"][$.copy_source] 
+					$.kstore["clipboard"][$.copy_target] = $.kstore["clipboard"][$.copy_source]
 				}else{
 					#copy "Snarf" to target
 					$.kstore["clipboard"][$.copy_target] = new foophrase($.kstore["record"], $$.playing_phrases_beat_len, 1)
@@ -193,73 +193,73 @@ class area_multimode{
 				verbose("Stop playing")
 				delete(phs[areaid])
 				#}else if( defined($.kstore["clipboard"][areaid]) ){
-				}else if( areaid in $.kstore["clipboard"] ){
-					#start playing
-					verbose("Start playing")
-					$.kstore["clipboard"][areaid].reset(0)
-					#$.kstore["clipboard"][areaid].set_loop(0)
-					phs[areaid] = 1
-				}
-				#action finished. release knob
-				#$.active = 0
-				#$$.restore()
-				#$.knobid = -1
-				#$.mode = -1
-			}else if( $.mode == 3 ){
-				verbose("Modify mode: Select")
-				print("   Not implemented")
+			}else if( areaid in $.kstore["clipboard"] ){
+				#start playing
+				verbose("Start playing")
+				$.kstore["clipboard"][areaid].reset(0)
+				#$.kstore["clipboard"][areaid].set_loop(0)
+				phs[areaid] = 1
 			}
-
-		}
-
-		method delete(){
-			kill($.loopid)
-			deletesubitems($,$.piano_areas)
-			deleteobject($.kstore["clipboard"][99] )
-		}
-	}
-
-
-	################# Some Classes   ##########
-	class foophrase {
-		method init(ph, beat_len, loop){
-			$.starttime = Now
-			if( nargs() < 3) $.loop = 0
-			else $.loop = loop
-			if( nargs() < 2) $.beat_len = 1b
-			else $.beat_len = beat_len
-			if( nargs() < 1) $.ph = 'cv128,e,g'
-			else $.ph = ph
-			$.beat = 0
-			$.length_ = phrase_length($.ph)
-			$.maxbeat = -floor(- $.length_/$.beat_len )-1 #ceil(...)-1
-		}
-
-		method running(){
-			return( $.beat<=$.maxbeat )
-		}
-
-		method next(){
-			if($.beat>$.maxbeat) return('')
-			lock($)
-			ret = extract_beat($.ph,$.beat,$.beat_len)
-			$.beat++
-			if($.beat>$.maxbeat && $.loop) $.beat=0
-			unlock($)
-			return(ret)
-		}
-
-		method set_loop(loop){
-			lock($)
-			$.loop = loop
-			if($.beat>$.maxbeat && $.loop) $.beat=0
-			unlock($)
-		}
-
-		method reset(){
-			lock($)
-			$.beat = 0
-			unlock($)
+			#action finished. release knob
+			#$.active = 0
+			#$$.restore()
+			#$.knobid = -1
+			#$.mode = -1
+		}else if( $.mode == 3 ){
+			verbose("Modify mode: Select")
+			print("   Not implemented")
 		}
 
 	}
+
+	method delete(){
+		kill($.loopid)
+		deletesubitems($,$.piano_areas)
+		deleteobject($.kstore["clipboard"][99] )
+	}
+}
+
+
+################# Some Classes   ##########
+class foophrase {
+	method init(ph, beat_len, loop){
+		$.starttime = Now
+		if( nargs() < 3) $.loop = 0
+		else $.loop = loop
+		if( nargs() < 2) $.beat_len = 1b
+		else $.beat_len = beat_len
+		if( nargs() < 1) $.ph = 'cv128,e,g'
+		else $.ph = ph
+		$.beat = 0
+		$.length_ = phrase_length($.ph)
+		$.maxbeat = -floor(- $.length_/$.beat_len )-1 #ceil(...)-1
+	}
+
+	method running(){
+		return( $.beat<=$.maxbeat )
+	}
+
+	method next(){
+		if($.beat>$.maxbeat) return('')
+		lock($)
+		ret = extract_beat($.ph,$.beat,$.beat_len)
+		$.beat++
+		if($.beat>$.maxbeat && $.loop) $.beat=0
+		unlock($)
+		return(ret)
+	}
+
+	method set_loop(loop){
+		lock($)
+		$.loop = loop
+		if($.beat>$.maxbeat && $.loop) $.beat=0
+		unlock($)
+	}
+
+	method reset(){
+		lock($)
+		$.beat = 0
+		unlock($)
+	}
+
+}

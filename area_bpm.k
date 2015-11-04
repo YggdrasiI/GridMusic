@@ -10,7 +10,7 @@ class area_bpm{
 		$.inherit( new area(N,1,10) )
 
 		$.maxdepth = 0
-		$.bpm_ = -1 
+		$.bpm_ = -1
 		$.bpm_set = ( 60/( float(tempo( ))/1000000) )
 		$.update = $.update_handler
 		$.play = $.play_handler
@@ -44,7 +44,7 @@ class area_bpm{
 
 		}
 
-		# select bpm_ with max depth value in the time intervall  
+		# select bpm_ with max depth value in the time intervall
 		if( $.maxdepth < iz ){
 			$.bpm_ = bpm_
 			$.maxdepth = iz

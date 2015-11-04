@@ -2,7 +2,7 @@
 # The input (movement) and output (sending midi) are
 # sperated into two tasks. (Avoid blocking of output.)
 # Child classes should define their own handling methodes
-# for input and output, see 
+# for input and output, see
 # - $.update (input handle) and
 # - $.play (output handle).
 class area {
@@ -60,7 +60,7 @@ class area {
 	method get_ixyz(xyz, indizies ) {
 		i = []
 		for( k in indizies ){
-			i[k] = floor( $.dim[indizies[k]] * xyz[indizies[k]] ) 
+			i[k] = floor( $.dim[indizies[k]] * xyz[indizies[k]] )
 		}
 		return(i)
 	}

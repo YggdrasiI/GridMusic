@@ -31,7 +31,7 @@ class area_drum{
 			$.mfiles[i] = readmf($.mfilenames[i])
 			i+=1
 		}
-		$.mfiles_size = sizeof($.mfilenames)	
+		$.mfiles_size = sizeof($.mfilenames)
 
 		$.defaulthand = ["playing"=-1,"depth"=0,"strength"=0,"maxvelocity"=0,"maxdepth"=0,"timestamp"=0,"mindt"=1b,"mt"=-1,"state"=0]
 		$.hands = []
@@ -56,7 +56,7 @@ class area_drum{
 		ix = floor( $.dim[0]*xyz[0])
 		iy = floor( $.dim[1]*xyz[1])
 		iz = floor( $.dim[2]*xyz[2])
-		lock($)	
+		lock($)
 		#if( typeof( $.hands[handid] != "array" ) )
 		#if( !(handid in $.hands) || Now - $.hands[handid]["timestamp"] > 100 )
 		if( $.hands[handid] == "" || Now - $.hands[handid]["timestamp"] > 100 ){
@@ -86,7 +86,7 @@ class area_drum{
 				if( z < oldmaxdepth-0.08 && $.hands[handid]["mindt"] < Now - $.hands[handid]["lastplay"] ){
 					$.hands[handid]["maxdepth"] = z
 					$.hands[handid]["maxvecocity"] = 0
-					$.hands[handid]["state"] = 0 
+					$.hands[handid]["state"] = 0
 				}
 			}
 
@@ -99,7 +99,7 @@ class area_drum{
 
 		volfactor = hand["maxvelocity"]*40;
 		i = rand($.mfiles_size)
-		hand["playing"] = i 
+		hand["playing"] = i
 		drum = normalize($.mfiles[i], -1, volfactor*GLOBALVOL)
 
 		drum =  major('fo2')
@@ -129,10 +129,10 @@ class area_drum{
 		lock($)
 		for( id in $.hands){
 			#if($.hands[id] != "" ){
-				verbose("Kill", $.hands[id]["mt"] )
-				kill($.hands[id]["mt"])
-				#}
-			}
-			unlock($)
+			verbose("Kill", $.hands[id]["mt"] )
+			kill($.hands[id]["mt"])
+			#}
 		}
+		unlock($)
 	}
+}

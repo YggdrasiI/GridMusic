@@ -1,4 +1,4 @@
-# Allow the switch between different layers. 
+# Allow the switch between different layers.
 # 0. Init area and assoziate areaids with setting functionhandler.
 # 1. Press this area
 # 2. Press other area to load a new setting. The old areas will be deleted.
@@ -16,7 +16,7 @@ class area_setting_switcher{
 		}
 
 		$.active = 0
-		$.timestamp = Now 
+		$.timestamp = Now
 
 		$.switch_area = new area_selector();
 		#$.switch_area.set_handler($.switch_handler)
@@ -70,7 +70,7 @@ class area_setting_switcher{
 		lock($)
 		print("Selected area: ",areaid)
 
-		if( typeof($.settings[areaid]) == "function" ){	
+		if( typeof($.settings[areaid]) == "function" ){
 			realtime('co4v100')
 
 			areas1 = ($.settings[areaid])(0)
@@ -114,7 +114,7 @@ class area_setting_switcher{
 }
 
 
-# Dummy class as touch detector in area_setting_switcher. 
+# Dummy class as touch detector in area_setting_switcher.
 class area_selector{
 	method init() {
 		$.inherit( new area(1,1,5) )
@@ -122,7 +122,7 @@ class area_selector{
 		#$.select = $.default_handler
 		$.obj = $
 		$.active = 0
-		$.timestamp = Now 
+		$.timestamp = Now
 		$.twait = Now+1b
 	}
 
@@ -136,7 +136,7 @@ class area_selector{
 			$.active = 1
 			$.timestamp = Now
 			#callback
-			#task $.select(areaid, handid, xyz) 
+			#task $.select(areaid, handid, xyz)
 			$.obj.switch_handler(areaid, handid, xyz)
 			#sleeptill(Now+1b)
 		} else if( iz < 2){

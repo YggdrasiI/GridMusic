@@ -1,5 +1,5 @@
 # Play one note/hand with very long duration.
-# Needs midi instrument, which consides .dur-property, like trumpet. 
+# Needs midi instrument, which consides .dur-property, like trumpet.
 # The hand depth controls the volume. The volume will be set to 0 if
 # the hand leaves the area.
 #
@@ -10,7 +10,7 @@
 class area_trumpet{
 	method init(possible_notes, vol_min, vol_max) {
 
-		$.DFADE_OUT = 1 #constant 
+		$.DFADE_OUT = 1 #constant
 		$.FFADE_OUT = 0.8 #scalar
 		$.hands = [] # store active hands
 		$.count_hand = [] # store nbr of hands in range of notes.
@@ -30,7 +30,7 @@ class area_trumpet{
 		}
 
 		$.vol_min = vol_min
-		$.vol_max = vol_max	
+		$.vol_max = vol_max
 		$.vol_range = vol_max-vol_min
 
 		$.inherit( new area(3*$.possible_notes_size,1,$.vol_range) )
@@ -44,7 +44,7 @@ class area_trumpet{
 
 	method update_handler2(areaid, handid, xyz) {
 		#lock($)
-		xyz[2] *= 1.4 
+		xyz[2] *= 1.4
 		if( xyz[2]>1) xyz[2] = 1
 
 		ix = floor( $.dim[0]*xyz[0] )
@@ -63,10 +63,10 @@ class area_trumpet{
 				if( abs(ix - hand["ix"]) > 1 && inote != oin ){
 					# deaccociate hand from note
 					$.count_hand[oin]--
-					if($.active_hand[oin] == handid) $.active_hand[oin] = -1 
+					if($.active_hand[oin] == handid) $.active_hand[oin] = -1
 
 					if($.count_hand[oin]<1){
-						# Send noteoff message 
+						# Send noteoff message
 						note = $.possible_notes[oin]
 						note.vol = 0
 						verbose("(trumpet) Mute previous note", handid, oin)
@@ -94,7 +94,7 @@ class area_trumpet{
 					if( dv != 0 ){
 						note.vol += dv
 						$.possible_notes[oin] = note
-						press = pressure(note) 
+						press = pressure(note)
 						verbose("(trumpet) Change volume to",handid, inote, note.vol)
 						#if(note.vol > 120)print("MAX!!!!!!")
 						realtime(press,Now)
@@ -132,7 +132,7 @@ class area_trumpet{
 					}
 					if($.count_hand[inote] < 2 ){
 						# This and is the only hand for this note.
-						# Fade out note and release 
+						# Fade out note and release
 						note.vol *= $.FFADE_OUT
 						note.vol -= $.DFADE_OUT
 						if( note.vol < $.DFADE_OUT){

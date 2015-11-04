@@ -53,13 +53,13 @@ function extract_beat(ph,beat,dur){
 	return(ret_ph)
 }
 
-function minor(k) { return(k|transpose(k,3)|transpose(k,7));} 
+function minor(k) { return(k|transpose(k,3)|transpose(k,7));}
 
 function dur(basiston){
 	abstaende = [0=0,1=2,2=4,3=5,4=7,5=9,6=11,7=12]
 	tonleiter = ''
 	for( a in abstaende ){
-		tonleiter += transpose(basiston,abstaende[a]) 
+		tonleiter += transpose(basiston,abstaende[a])
 		#print( transpose(basiston,abstaende[a]))
 	}
 	return(tonleiter)
@@ -67,9 +67,9 @@ function dur(basiston){
 
 function durarr(basiston){
 	abstaende = [0=0,1=2,2=4,3=5,4=7,5=9,6=11,7=12]
-	tonleiter = [] 
+	tonleiter = []
 	for( a in abstaende ){
-		tonleiter[a] = transpose(basiston,abstaende[a]) 
+		tonleiter[a] = transpose(basiston,abstaende[a])
 	}
 	return(tonleiter)
 }
@@ -78,7 +78,7 @@ function durarr(basiston){
 function filter_notes(aa,bb){
 	cc = aa
 	for( b in bb ){
-		cc = cc { ??.pitch != b.pitch || ??.chan != b.chan } 
+		cc = cc { ??.pitch != b.pitch || ??.chan != b.chan }
 	}
 	return(cc)
 }
@@ -87,7 +87,7 @@ function filter_notes(aa,bb){
 #function maxvol(ph){
 #	max = 0
 #	for(n in ph){
-#		if( max<n.vol ) max = n.vol	
+#		if( max<n.vol ) max = n.vol
 #	}
 #	return(max)
 #}
@@ -96,7 +96,7 @@ function filter_notes(aa,bb){
 #function minvol(ph){
 #	min = 128
 #	for(n in ph){
-#		if( min>n.vol ) min = n.vol	
+#		if( min>n.vol ) min = n.vol
 #	}
 #	return(min)
 #}
@@ -116,7 +116,7 @@ function normalize(ph, ymin, ymax){
 	ph2 = ''
 	for( n in ph ){
 		if( n.type != MIDIBYTES ){
-			n.vol = a*n.vol + b 
+			n.vol = a*n.vol + b
 		}
 		ph2 |= n
 	}
@@ -135,13 +135,13 @@ function maximize_volume(ph, new_ph_vol){
 	return(ph)
 }
 
-# Extract part of phrase. 
+# Extract part of phrase.
 # There is already an other function
 # in utils.k to do that.
 # The obviously endtime is returned
 # to get the same signature as extract2().
 function extract1(ph,start_t, min_dt){
-	begin = start_t 
+	begin = start_t
 	end = begin+min_dt
 	ret = []
 	tmp_ph = ph {??.time >= begin}
@@ -157,7 +157,7 @@ function extract1(ph,start_t, min_dt){
 # second return argument differs from
 # start_t + min_dt.
 function extract2(ph,start_t, min_dt){
-	begin = start_t 
+	begin = start_t
 	end = begin+min_dt
 	ret = []
 	tmp_ph = ph {??.time >= begin}
@@ -272,7 +272,7 @@ function pianoPads(){
 }
 
 
-# delete objects of arr if they not related with 
+# delete objects of arr if they not related with
 # obj
 function deletesubitems(obj,arr){
 	for( i in arr ){
@@ -315,7 +315,7 @@ function pressure(ph){
 	return(ret)
 }
 
-# return bytes to change instrument 
+# return bytes to change instrument
 function change_instrument( channel, index ){
 	statusbyte = 0xC0 + channel
 	data1 = index & 0x7F

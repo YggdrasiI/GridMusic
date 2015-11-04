@@ -31,7 +31,7 @@
 
 VERBOSE = 1 # print some debug messages
 OSCPORT = 3335
-GLOBALVOL = 80 
+GLOBALVOL = 80
 
 # midi channel of next played note in some areas.
 # See area_piano.k and area_channelswitcher.k
@@ -53,27 +53,27 @@ KSTORE = []
 # The following settings assume this physical
 # position of 11 areas (0-10):
 #
-# ┏━━━━━┳━━━━━┳━━━━━┓ 
-# ┃  0  ┃     ┃  6  ┃    
-# ┣━━━━━┫  4  ┣━━━━━┫ 
-# ┃     ┃     ┃     ┃    
-# ┃  1  ┣━━━━━┫  7  ┃    
-# ┃     ┃     ┃     ┃    
-# ┣━━━━━┫  5  ┣━━━━━┫ 
-# ┃     ┃     ┃     ┃    
-# ┃  2  ┣━━━━━┫  9  ┃    
-# ┃     ┃     ┃     ┃    
-# ┣━━━━━┫  6  ┣━━━━━┫ 
-# ┃  3  ┃     ┃ 10  ┃    
-# ┗━━━━━┻━━━━━┻━━━━━┛	 
-#  
+# ┏━━━━━┳━━━━━┳━━━━━┓
+# ┃  0  ┃     ┃  6  ┃
+# ┣━━━━━┫  4  ┣━━━━━┫
+# ┃     ┃     ┃     ┃
+# ┃  1  ┣━━━━━┫  7  ┃
+# ┃     ┃     ┃     ┃
+# ┣━━━━━┫  5  ┣━━━━━┫
+# ┃     ┃     ┃     ┃
+# ┃  2  ┣━━━━━┫  9  ┃
+# ┃     ┃     ┃     ┃
+# ┣━━━━━┫  6  ┣━━━━━┫
+# ┃  3  ┃     ┃ 10  ┃
+# ┗━━━━━┻━━━━━┻━━━━━┛
+#
 
 
 ################ SETTINGS ####################
 # Extend settingExample for your own settings
-# and invoke them in keykit's console. 
+# and invoke them in keykit's console.
 
-# Setting for 
+# Setting for
 function settingExample(loop){
 
 	notes = [0='c',1='e',2='g']
@@ -97,9 +97,9 @@ function settingExample(loop){
 # C-Major pads
 #
 #  0,vol          7,vol
-#         4,d       
+#         4,d
 #   1,c           8,e
-#         5,g,g'   
+#         5,g,g'
 #   2,f           9,a
 #         6,b
 #  3,switcher    10,vol
@@ -147,7 +147,7 @@ function settingPiano(loop){
 }
 
 # Send OSC commands to gst123 (media player)
-# Modify oscplayer.k or gst123.k to 
+# Modify oscplayer.k or gst123.k to
 # support other players (which?)
 function settingGst(loop){
 
@@ -248,10 +248,10 @@ function looper(areas, kstore) {
 	}
 
 	#init some global variables....
-	if( !defined(GLOBALVOL) ) GLOBALVOL = 80 
+	if( !defined(GLOBALVOL) ) GLOBALVOL = 80
 	if( !("clipboard" in kstore) ) kstore["clipboard"] = []
-	if( !("record" in kstore) ) kstore["record"] = '' 
-	if( !("record_starttime" in kstore) ) kstore["record_starttime"] = Now 
+	if( !("record" in kstore) ) kstore["record"] = ''
+	if( !("record_starttime" in kstore) ) kstore["record_starttime"] = Now
 	kstore["record_active"] = 0
 
 	#start osc looper
@@ -292,16 +292,16 @@ function looper(areas, kstore) {
 class looperobj {
 	method init(OSCPORT, areas) {
 
-		#load setting for hand areas of mmtt	
+		#load setting for hand areas of mmtt
 		#$.areas = setting4(0)
 		#funcname = printf("setting%i",setting_nbr)#works only for $.methodname
 		#$.areas = (funcname)()
 		$.areas = areas
-		$.areas_size = sizeof($.areas); 
+		$.areas_size = sizeof($.areas);
 
 		$.osclistenport = OSCPORT
 		#s = string($.osclistenport)+"@"+Hostname
-		#s = string($.osclistenport)+"@127.0.0.1" 
+		#s = string($.osclistenport)+"@127.0.0.1"
 		s = string($.osclistenport)+"@0.0.0.0"
 		$.oscf = open(s,"rA","osc_listen")
 		if ( $.oscf < 0 ) {
@@ -409,13 +409,13 @@ function glob_record(ph){
 		return()
 	}
 
-	td = Now - KSTORE["record_starttime"] 
+	td = Now - KSTORE["record_starttime"]
 	ph.time += td
 	KSTORE["record"] |= ph
 }
 
 function glob_record_test(ph){
-	td = 2b 
+	td = 2b
 	ph2 = ''
 	for( n in ph){
 		n.time += td
@@ -424,7 +424,7 @@ function glob_record_test(ph){
 	return(ph2)
 }
 function glob_record_test2(ph){
-	td = 2b 
+	td = 2b
 	ph2 = ph
 	ph2.time += td
 	return(ph2)

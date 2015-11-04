@@ -16,7 +16,7 @@ class area_gst123{
 			$.mfilenames[i] = mfilenames[n];
 			i+=1
 		}
-		$.mfiles_size = sizeof($.mfilenames)	
+		$.mfiles_size = sizeof($.mfilenames)
 
 		$.hand_is_in = 0
 		$.playing = -1

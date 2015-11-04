@@ -41,9 +41,9 @@ function setting1(loop){
 	files["5"] = "bachinv3.mid"
 
 	files2 = []
-	files2["1"] = "patt0.mid" 
-	files2["2"] = "patt1.mid" 
-	files2["3"] = "patt2.mid" 
+	files2["1"] = "patt0.mid"
+	files2["2"] = "patt1.mid"
+	files2["3"] = "patt2.mid"
 	files2["4"] = "patt3.mid"
 	files2["5"] = "patt4.mid"
 	files2["6"] = "patt5.mid"
@@ -155,9 +155,9 @@ function setting3(loop){
 # C-Major pads
 #
 #  0,vol          7,bpm
-#         4,d'       
+#         4,d'
 #   1,c'          8,e'
-#         5,g,g'   
+#         5,g,g'
 #   2,f'          9,a
 #         6,b
 #  3,vol          10,free
@@ -243,7 +243,7 @@ function xxx(ph,tone){
 
 # Like setting4, but with  instrument phrases.
 function setting6(loop,nr){
-	if( nargs() < 2) nr = 1 
+	if( nargs() < 2) nr = 1
 
 	possible_notes = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
 	possible_notes2 = [0='c',1='d',2='e',3='f']
@@ -340,7 +340,7 @@ function settingGst2(loop){
 	return(areas)
 }
 
-# zynaddsubfx setting: KinectSet1.xmz 
+# zynaddsubfx setting: KinectSet1.xmz
 function kinectSet1(loop){
 
 	durations = [0=1b,1=4b,2=8b,3=8b,4=8b,5=8b]
@@ -389,7 +389,7 @@ function kinectSet1(loop){
 	return(areas)
 }
 
-# zynaddsubfx setting: KinectSet2.xmz 
+# zynaddsubfx setting: KinectSet2.xmz
 function kinectSet2(loop){
 
 	durations = [0=1b,1=4b,2=8b,3=8b,4=8b,5=8b]
@@ -492,7 +492,7 @@ function settingH2(loop){
 
 	N = 5
 	s = scale_mixolydian()
-	s2 = s 
+	s2 = s
 	sChanB = s
 	s.pitch += 33
 	s2.pitch += 48

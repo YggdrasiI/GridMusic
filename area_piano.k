@@ -1,4 +1,4 @@
-# Simple class to play one note. 
+# Simple class to play one note.
 # xyz Orientation defines note, volume and duration.
 # The input (movement) and output (sending midi) are
 # sperated into two tasks. (Avoid blocking of output.)
@@ -28,138 +28,138 @@ function settings_piano{
 
 class area_piano{
 	#method init(notes, durations, vol_min, vol_max) {
-		method init( settings ) {
-			if( nargs() < 1 ){
-				settings = settings_piano()
-			}
-			$.settings = settings
+	method init( settings ) {
+		if( nargs() < 1 ){
+			settings = settings_piano()
+		}
+		$.settings = settings
 
-			$.notes = copy_array2(settings["notes"])
-			$.possible_notes_size = sizeof($.notes)
-			# Repeation of last element for internal reasons
-			$.notes[$.possible_notes_size] = $.notes[$.possible_notes_size-1]
+		$.notes = copy_array2(settings["notes"])
+		$.possible_notes_size = sizeof($.notes)
+		# Repeation of last element for internal reasons
+		$.notes[$.possible_notes_size] = $.notes[$.possible_notes_size-1]
 
-			$.durations = copy_array2(settings["durations"])
-			$.durations_size = sizeof($.durations)
-			# Repeation of last element for internal reasons
-			$.durations[$.durations_size] = $.durations[$.durations_size-1]
+		$.durations = copy_array2(settings["durations"])
+		$.durations_size = sizeof($.durations)
+		# Repeation of last element for internal reasons
+		$.durations[$.durations_size] = $.durations[$.durations_size-1]
 
-			$.orientation = settings["orientation"]
+		$.orientation = settings["orientation"]
 
-			$.vol_min = settings["vol_range"]["low"]
-			$.vol_max = settings["vol_range"]["high"]
-			$.vol_range = $.vol_max - $.vol_min
+		$.vol_min = settings["vol_range"]["low"]
+		$.vol_max = settings["vol_range"]["high"]
+		$.vol_range = $.vol_max - $.vol_min
 
-			dim = [ 
-			$.orientation[0] = $.possible_notes_size,
-			$.orientation[1] = $.durations_size,
-			$.orientation[2] = $.vol_range
-			]
-			$.inherit( new area(dim) )
+		dim = [
+		$.orientation[0] = $.possible_notes_size,
+		$.orientation[1] = $.durations_size,
+		$.orientation[2] = $.vol_range
+		]
+		$.inherit( new area(dim) )
 
-			$.hands = []
-			$.xis = []
+		$.hands = []
+		$.xis = []
 
+		$.last_note = ''
+		$.last_refresh = Now
+
+		$.update = $.update_handler
+		$.play = $.play_handler
+
+		$.loopid = task $.playloop()
+	}
+
+	method update_handler(areaid, handid, xyz) {
+		lock($)
+		ixyz = $.get_ixyz(xyz, $.orientation)
+		note = $.notes[ ixyz[0]  ]
+		note.vol = $.vol_min + ixyz[2]
+		#note.vol = 100
+		#print("Volume = ", note.vol )
+		note.dur = $.durations[ ixyz[1] ]
+		#print("Note.chan = ",note.chan )
+		if( $.xis[handid] != ixyz[0] ){
+			$.xis[handid] = ixyz[0]
 			$.last_note = ''
-			$.last_refresh = Now
-
-			$.update = $.update_handler
-			$.play = $.play_handler
-
-			$.loopid = task $.playloop()
 		}
 
-		method update_handler(areaid, handid, xyz) {
+		# select maximal volume reached in the time intervall (till $.hands is reset)
+		if( $.hands[handid] != "" && $.hands[handid].vol > note.vol ){
+			note.vol = $.hands[handid].vol
+			$.hands[handid] = note
+			$.xis[handid] = ixyz[0]
+		}else{
+			$.hands[handid] = note
+		}
+
+		$.last_refresh = Now
+		if( xyz[2]<0.05 ){
+			$.clear()
+		}
+
+		unlock($)
+	}
+
+	# clear last note, if hand was moved back. This allows playing the last played note again.
+	method clear(){
+		$.last_note = ''
+		$.hands = []
+	}
+
+	method play_handler() {
+
+		if( sizeof($.hands) > 0 ){
 			lock($)
-			ixyz = $.get_ixyz(xyz, $.orientation)
-			note = $.notes[ ixyz[0]  ]
-			note.vol = $.vol_min + ixyz[2]
-			#note.vol = 100
-			#print("Volume = ", note.vol )
-			note.dur = $.durations[ ixyz[1] ]
-			#print("Note.chan = ",note.chan )
-			if( $.xis[handid] != ixyz[0] ){
-				$.xis[handid] = ixyz[0]
-				$.last_note = ''
-			}
+			note = $.get_note()
 
-			# select maximal volume reached in the time intervall (till $.hands is reset) 
-			if( $.hands[handid] != "" && $.hands[handid].vol > note.vol ){
-				note.vol = $.hands[handid].vol
-				$.hands[handid] = note
-				$.xis[handid] = ixyz[0]
-			}else{
-				$.hands[handid] = note
-			}
+			# remove notes of the last tick
+			#noteb = note - $.last_note
+			# as above, but ignore volume differences
+			noteb = filter_notes(note,$.last_note)
 
-			$.last_refresh = Now
-			if( xyz[2]<0.05 ){
-				$.clear()
-			}
+			$.last_note = note
 
-			unlock($)
-		}
-
-		# clear last note, if hand was moved back. This allows playing the last played note again.
-		method clear(){
-			$.last_note = ''
+			#clear notes
 			$.hands = []
-		}
+			unlock($)
 
-		method play_handler() {
+			#print("Play note", noteb)
+			# Different areas are not 100% synchron if we use "Now".
+			ph = $.modify_note(noteb)
+			realtime( ph, Now)
 
-			if( sizeof($.hands) > 0 ){
+			if(KSTORE["record_active"]) glob_record( ph )
+			#sleeptill(Now+noteb.dur)
+			sleeptill(Now+10)
+		}else{
+			if( Now - $.last_refresh > 46 ){
 				lock($)
-				note = $.get_note()
-
-				# remove notes of the last tick
-				#noteb = note - $.last_note
-				# as above, but ignore volume differences
-				noteb = filter_notes(note,$.last_note)
-
-				$.last_note = note
-
-				#clear notes
-				$.hands = []
+				$.clear()
+				$.last_refresh = Now+1b
 				unlock($)
-
-				#print("Play note", noteb)
-				# Different areas are not 100% synchron if we use "Now".
-				ph = $.modify_note(noteb)
-				realtime( ph, Now)
-
-				if(KSTORE["record_active"]) glob_record( ph ) 
-				#sleeptill(Now+noteb.dur)
-				sleeptill(Now+10)
-			}else{
-				if( Now - $.last_refresh > 46 ){
-					lock($)
-					$.clear()
-					$.last_refresh = Now+1b
-					unlock($)
-				}
-				#sleeptill(Now+10)
-				sleeptill(Now+20)
 			}
-		}
-
-		# Join nodes of all hands.
-		method get_note(){
-			note = ''
-			for( n in $.hands ){
-				note |= $.hands[n]
-			}
-			return(note)
-		}
-
-		# Optinal decorations
-		method modify_note(note){
-			#note.chan = MAINCHANNEL
-			#note.vol *= GLOBALVOL/128.0
-			return(note)
-			ph = major(note)
-			ph.vol *= 0.3
-			return( note|ph  )
-			#		return( major(note) )
+			#sleeptill(Now+10)
+			sleeptill(Now+20)
 		}
 	}
+
+	# Join nodes of all hands.
+	method get_note(){
+		note = ''
+		for( n in $.hands ){
+			note |= $.hands[n]
+		}
+		return(note)
+	}
+
+	# Optinal decorations
+	method modify_note(note){
+		#note.chan = MAINCHANNEL
+		#note.vol *= GLOBALVOL/128.0
+		return(note)
+		ph = major(note)
+		ph.vol *= 0.3
+		return( note|ph  )
+		#		return( major(note) )
+	}
+}

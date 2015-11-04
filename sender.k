@@ -1,4 +1,4 @@
-# Listener class. 
+# Listener class.
 class sender{
 	method init(){
 		$.listener = []

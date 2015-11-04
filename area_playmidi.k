@@ -15,7 +15,7 @@ class area_playmidi{
 			$.mfiles[i] = reduce_channels($.mfiles[i], 4);
 			i+=1
 		}
-		$.mfiles_size = sizeof($.mfiles)	
+		$.mfiles_size = sizeof($.mfiles)
 
 		$.hand_is_in = 0
 		$.playing = -1
@@ -114,7 +114,7 @@ class area_playmidi_random {
 			$.mfilenames[i] = mfilenames[n];
 			i+=1
 		}
-		$.mfiles_size = sizeof($.mfilenames)	
+		$.mfiles_size = sizeof($.mfilenames)
 
 		$.hand_is_in = 0
 		$.playing = -1

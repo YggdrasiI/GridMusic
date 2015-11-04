@@ -14,7 +14,7 @@
 # => areas[1] will replaced with $, areas[3] with A1 and area[5] with A2
 #
 #
-# Attention: The line	$.replace_areas[id] = $ 
+# Attention: The line	$.replace_areas[id] = $
 # in the knob contructor has a pitfall. If you inherit and call knob's
 # init() method, $ points to the knob object, but not $$.
 # To avoid this set up the replace_areas array before you call area_knob's init().
@@ -129,7 +129,7 @@ class area_knob{
 		#		unlock($)
 	}
 
-	# replace areas with $ 
+	# replace areas with $
 	method default_replace_handler(){
 		verbose("Replace areas", $, $$)
 		areas = $.kstore["looper"].get_areas()

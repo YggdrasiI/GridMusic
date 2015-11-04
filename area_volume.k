@@ -15,7 +15,7 @@ class area_volume{
 		$.inherit( new sender() )
 
 		$.maxdepth = 0
-		$.vol_ = -1 
+		$.vol_ = -1
 
 		$.update = $.update_handler
 		$.play = $$.play_handler
@@ -31,7 +31,7 @@ class area_volume{
 		lock($)
 		vol_ = $.vol_min + $.vol_stepsize*ix
 
-		# select vol_ with max depth value in the time intervall  
+		# select vol_ with max depth value in the time intervall
 		if( $.maxdepth < iz ){
 			$.vol_ = vol_
 			$.maxdepth = iz
