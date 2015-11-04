@@ -1,3 +1,39 @@
+#include contrib/GridMusic/start.k
+
+enable_output()
+
+# ----------------------------------------------
+
+# Minimal test to check if Keykit <=> Synthesiszer
+# connection work. If yes, it should be played
+# a simple chord.
+# Startup order:
+#		1. Synthesiser (lowkey)
+#		2. Keykit (lowkey)
+#		3. Connect both program externally
+#   4. Start test
+function basetest(){
+	ph = 'c, e, g, c e g, co4, g, e, c'
+
+	# Wait some time for step 3
+	#print("Wait")
+	#sleeptill(Now+10b)
+
+	# Run test
+	print("Run basetest")
+	realtime(ph,Now)
+
+	# Do not quit too early.
+	sleeptill(Now+2b+ph.length)
+
+	# Mute output before quitting
+	stop()
+
+	print("Quit basetest")
+}
+
+# ----------------------------------------------
+
 function ktest1(){
 
 	ph = 'cc4'
@@ -23,6 +59,9 @@ function ktest1(){
 
 }
 
+
+# ----------------------------------------------
+
 # Creates polyphonic aftertouch message
 # for (note.chan,note.pitch).
 function set_pressure(note,pressure){
@@ -41,7 +80,9 @@ function set_pressure(note,pressure){
 	return( ret )
 }
 
-function ktest2(ph){
+#function ktest2(ph){
+function ktest2(){
+	ph = 'c e g co4'
 	on = ph
 	on.type = NOTEON
 	off = ph
@@ -68,3 +109,6 @@ function ktest2(ph){
 	ret = ["ph"=ph,"on"=on,"off"=off,"l"=l,"h"=h,"x"=xxx,"all"=on+x+off]
 	return(ret)
 }
+
+# ----------------------------------------------
+
