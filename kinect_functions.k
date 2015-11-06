@@ -300,7 +300,8 @@ function deletesubitems(obj,arr){
 
 # convert note messages to pressure messages
 # better&faster solution will be
-# 'ph.type = PRESSURE' functionality?!
+# 'ph.type = PRESSURE' functionality, but this
+# does not work for me.
 function pressure(ph){
 	ret = ''
 	#Debug: Return empty phrase do omit error in zynaddsubfx

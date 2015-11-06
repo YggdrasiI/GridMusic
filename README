@@ -1,22 +1,50 @@
-============= Description ==========
+Description
+-----------
 
 This program can receive TUIO messages and 
-create midi messages. It's possible to
-simulate a keyboard, start midi files, record
-phrases and it's easy to create new touchpad (called areas)
-functions.
-
-GridMusic fills the gap beetween TUIO generators like
-the Kinect driven 'KincetGrid'¹ or 'Space Palette'² by Tim Thompson and 
-midi devices.  
+create midi messages. It contains predifined handlers
+to convert touch information into piano keypresses or
+to invoke other midi commands.
+Extending a base class allows the creation of further 'effects'
 
 The program is written in the Keykit programming language and
 requires Keykit³. Keykit is available for certain machines (e.g. Windows 95/98/NT/W2K/XP and x86-Linux).
 
-Required TUIO message form:
-/tuio/25Dblb set [areaid*1000+handid] [x] [y] [z]   ; x,y,z ∈[0,1]
-
 Created 2012 by Olaf Schulz ( funwithkinect@googlemail.com ).
+
+
+Project Goals
+-------------
+ TODO
+
+Why?
+----
+GridMusic fills the gap beetween TUIO generators like
+the Kinect driven 'KincetGrid'¹ or 'Space Palette'² by Tim Thompson and 
+midi devices/synthesizers.  
+
+
+Status
+------
+ TODO
+
+
+Usage Notes
+-----
+- Required form of TUIO messages:
+  /tuio/25Dblb set [areaid*1000+handid] [x] [y] [z]   ; x,y,z ∈[0,1]
+
+
+Todo
+----
+ TODO
+
+
+
+
+
+
+
 
 
 ============= Install ===================

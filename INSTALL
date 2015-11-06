@@ -4,7 +4,8 @@ tested with version 7.7b. You can download executables and
 sources on http://nosuch.com/keykit/ .
 
 
-On Windows:
+On Windows
+----------
 • Install Keykit.
 • Clone the repository into [KEYKIT ROOT DIR]\contrib\kinect.
 • Add '#include contrib/kinect/kinect.k' to your keylocal.k
@@ -12,7 +13,8 @@ On Windows:
 	keykit.
 
 
-On Linux:
+On Linux
+--------
 It's nessesary to patch the code¹...
 • Download source code of keykit 7.7b and extract it.
 • Rename MAKEFILE to Makefile and src/MAKEFILE, too.
@@ -32,12 +34,13 @@ It's nessesary to patch the code¹...
   file or type this line manually into the terminal window in 
 	keykit.
 
-Hint:  Create ./keylocal.k to enable alsa output port on startup.
+Hints: 
+  - Create ./keylocal.k to enable alsa output port on startup.
 	function keylocal(){
 			outalsa = outport(1)
 			mapport(0,outalsa) 
 	}
-Now, 'aconnect -i' shows an entry for keykit which can connect to a synthesiser.
+	Now, 'aconnect -i' shows an entry for keykit which can connect to a synthesiser.
 
 ___________________________________________________________
 ¹) http://groups.google.com/group/keykit/browse_thread/thread/afe7e03149f7aeb4

@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# Run (automatic) tests of GridMusic
+# Start server backend for python console
 ####################################
 
 # Input handling
-Func="basetest()"
-test -z "$1" || Func="$1" 
+Func="pyconsole(3330)"
+test -z "$1" || Func="pyconsole($1)" 
 
 # Normalize path. GRID_MUSIC_ROOT will be used to find GridMusic/tests in Keykit
 THIS_DIR=$(pwd)
@@ -23,5 +23,4 @@ killall $KEYKIT
 
 # Start
 cd $KEYROOT
-$KEYROOT/bin/$KEYKIT contrib/GridMusic/tests/tests1.k -c "$Func" 
-#$KEYROOT/bin/$KEYKIT /tests/kinect_test.k -c "$Func" 
+$KEYROOT/bin/$KEYKIT contrib/GridMusic/pyconsole.k -c "$Func" 
