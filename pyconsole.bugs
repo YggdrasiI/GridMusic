@@ -1,0 +1,8 @@
+Probleme:
+
+1. Exception beendet Keykit. Das ist bei der Fensterversion nicht der Fall.
+2. Enter im Fenster von Pyconsole.k einzugeben führt zu nicht endender Kette von Fehlermeldungen
+		Bad value given to handlewaitfor() - 64
+
+3. Teilweise lastet der Python-OSC-Server die CPU aus. Ursache noch unklar.
+

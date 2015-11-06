@@ -17,9 +17,17 @@ On Linux
 --------
 It's nessesary to patch the code¹...
 • Download source code of keykit 7.7b and extract it.
-• Rename MAKEFILE to Makefile and src/MAKEFILE, too.
-• Make rmcr executable:
+• Rename MAKEFILE src/MAKEFILLE to Makefile.
+• Make some scripts executable:
     chmod +x mdep/stdio/rmcr 
+		chmod +x byacc/byacc
+• Recompile byacc:
+	cd byacc
+	rm byacc
+	mv makefile.unx makefile
+	make clean
+	make
+	
 • Copy from this repository
    Makefile.patch 
    linux_alsa_-_osc_messages_v2.patch
