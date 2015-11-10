@@ -21,6 +21,6 @@ killall $KEYKIT
 # Script now called by Keykit itself, see GridMusic/start.k
 #${GRID_MUSIC_ROOT}/scripts/connect_alsa.sh ZynAddSubFX 2 &
 
-# Start
+# Swtich into directory with keyrc.k
 cd $KEYROOT
 $KEYROOT/bin/$KEYKIT contrib/GridMusic/pyconsole.k -c "$Func" 

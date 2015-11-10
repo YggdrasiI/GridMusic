@@ -1,11 +1,20 @@
 # Recive messages via OSC messages
 # See python/keykit.py for usage.
 
-#include contrib/GridMusic/start.k
+#include contrib/GridMusic/base_functions.k
+#include base_functions.k
+
+# Include main app. 
+# This is optional. Pyconsole has no dependencies 
+# to the main program.
+##include contrib/GridMusic/kinect.k
 
 # Default server value
 PYCONSOLE_PORT = 3330
 PYCONSOLE_HOSTNAME = "0.0.0.0"
+
+# Note: Keykit internal variables for this data are:
+#  KeyKitHost, Hostname, KeyKitPort, KeyKitRemotePort
 
 # Global pointer to pyconsole object
 # Target of osc_printf, see below.
@@ -16,39 +25,107 @@ Pyconsole = -1
 # /keykit/pyconsole/verbose TUIO message, too.
 Pyconsole_verbose = 1
 
-# Own interrupt function, unused
-function no_interrupt(){
+# Default filename for log
+Pyconsole_logfile = "pyconsole.log"
 
+# Call this function to use pyconsole
+function pyconsole(port, hostname){
+	#include contrib/GridMusic/base_functions.k
+	if( nargs() < 2 ) hostname = PYCONSOLE_HOSTNAME
+	if( nargs() < 1 ) port = PYCONSOLE_PORT 
+	#LOWKEY=1
+	enable_output()
+
+	pycon = new osc_console(port, hostname)
+	if( Graphics == 0 ){
+		Local_print("Press Ctrl+C to exit.")
+		wait(pycon.get_osc_tid())
+		deleteobject(pycon);
+		Local_printf("Quit pyconsole...\n")
+	}else{
+		Local_print("Press Esc to exit.")
+		while (1) {
+			c = Root.waitforconsolekey()
+			if ( ascii(c) == 27 ) {
+				break
+			}
+			Local_print("ignore", c);
+			sleeptill(Now+2b)
+		}
+		deleteobject(pycon);
+		Local_printf("Quit pyconsole...\n")
+	}
 }
 
-# Backup original printf handler
-local_printf = printf
 
-function local_print(...) {
+#####################################################
+# Internal stuff
+
+# Dummy handler, see below
+function ignore_non_fatal_errors() { }
+
+# Own interrupt function, unused
+function no_interrupt(){ }
+
+# Backup original printf handler
+Local_printf = nullfunc
+#Local_consoleprintf = nullfunc
+#Local_focus = -1
+
+function Local_print(...) {
 	sep = ""
 	for ( n=0; n<nargs(); n++ ) {
-		local_printf("%s%s",sep,string(argv(n)))
+		Local_printf("%s%s",sep,string(argv(n)))
 		sep = " "
 	}
-	local_printf("\n")
+	Local_printf("\n")
 }
 
 # printf replacement for remote printing
+# Every call of print() in Keykit invoke this
+# function at least twice. 
+# At the end it will be called with a final "\n".
+# We wait with the osc sending till this last "\n"
+# recive. This does not work for print("\n").
+# If mutliple task write out data only a few "\n" should be feed up?!
+Osc_send_cache = ""
 function osc_printf(...) {
 	if( Pyconsole != -1 ){
 		s = sprintf(...)
 
-		# 'Every' call is followed by a second one
-		# with ... = "\n". Skip them seems to be ok.
-		if( s == "\n" ) return()
-		if( Pyconsole_verbose > 0 ) local_printf("Send '" + s + "'")
-		Pyconsole.send(s)
+		if( s == "\n" && Osc_send_cache != "" ){
+			to_send = Osc_send_cache
+			Osc_send_cache = ""
+			Pyconsole.send(to_send)
+			if( Pyconsole_verbose > 0 ) Local_printf("Send '" + to_send + "'")
+		}else{
+			Osc_send_cache += s
+		}
 	}else{
-		local_printf(...)
+		Local_printf(...)
 	}
 }
 
-nn
+
+# Overwrite this to propagete output in windowed mode, too.
+# Edit: No, does not work because consoleprintf 
+# is not called in windowed mode.
+function my_consoleprintf(...) {
+	Local_printf("Hey pyconsole!\n")
+	osc_printf(...)
+}
+
+# Task loop for my Consout
+function my_consoutloop() {
+	while ( 1 ) {
+		c = get(Consoutfifo)
+		#c = get(Pyconsole_out)
+		#Local_printf(",%s",string(c))
+		realmidi('g',Now)
+	}
+}
+#consoutloop = my_consoutloop
+
 class osc_console {
 	method init(port, hostname) {
 		if( nargs() < 2 ) hostname = PYCONSOLE_HOSTNAME
@@ -63,47 +140,81 @@ class osc_console {
 		$.Histindex = 0
 		$.History = 0
 		$.Modir = 0
-		$.HFName = "pyconsole.log"
+
+		Local_printf = printf
+		#Local_consoleprintf = consoleprintf
 
 		printf = osc_printf
 		Pyconsole = $
-		Intrfunc = no_interrupt
 
+		# Overwrite default Errorfunc to omit program exit on
+		# errors. Without this remapping malformed input quit
+		# Keykit in console mode.
+		Errorfunc = ignore_non_fatal_errors
+
+		#Intrfunc = no_interrupt
+		#consoleprintf = my_consoleprintf # ness?!
+
+		#		if( Graphics > 0 ){
+		#			Local_focus = Root.focus()
+		#			#Local_printf = Local_focus.printf
+		#			Root.focus($)
+		#		}
 
 		# s = string($.osclistenport)+"@"+Hostname
 		# s = string($.osclistenport)+"@127.0.0.1"
 		s = string($.osclistenport)+"@"+$.oschostname
 		$.oscf = open(s,"rA","osc_listen")
 		if ( $.oscf < 0 ) {
-			local_print("Unable to listen on ",Osclisten," !?")
+			Local_print("Unable to listen on ",Osclisten," !?")
 			$.osctid = -1
 		} else {
-			local_print("Listening for OSC on ",s," ...")
+			Local_print("Listening for OSC on ",s," ...")
 			# start loop for mmtt osc messages
 			$.osctid = task $.osctask()
 		}
 		$.lastosc = 0 # unused
+
+		# Send out information about (re)-start of the backend.
+		$.send("Pyconsole started.", "/keykit/pyconsole/start")
+	}
+
+	method delete {
+		if($.oscf > -1){
+			close($.oscf)
+			$.oscf = -1
+		}
+		kill($.osctid)
+		$.osctid = -1
+
+		# Restore previous handler
+		printf = Local_printf
+		#consoleprintf = Local_consoleprintf
+		if( Pyconsole == $){
+			Pyconsole = -1
+		}
 	}
 
 	method handle_message(d){
 		# print(d[0])
 		if( d[0] == "/keykit/pyconsole/in" ){
-			if( Pyconsole_verbose > 0 ) local_print("execute ", d[1])
+			if( Pyconsole_verbose > 0 ) Local_print("execute ", d[1])
+
 			# Blocking evaluation
 			# $.interpreter(d[1])
-
+			# or
 			# Unbocking evaluation
 			tid = task $.interpreter(d[1])
+
 			lock($)
 			$.open_tasks[tid] = 1
 			unlock($)
-		}
-		else if( d[0] == "/keykit/pyconsole/target" ){
+		}else if( d[0] == "/keykit/pyconsole/target" ){
 			lock($)
 			$.oscsendtarget["server"] = string(d[1])
 			$.oscsendtarget["port"] = integer(d[2])
 			if( Pyconsole_verbose > 0 ){
-				local_print("Set pyconsole target to",
+				Local_print("Set pyconsole target to",
 					string($.oscsendtarget["port"])+"@"+$.oscsendtarget["server"])
 			}
 			unlock($)
@@ -135,14 +246,11 @@ class osc_console {
 
 	# Interpreter copied from loops.k::interploop
 	method interpreter(cmd) {
-		# Remap output into this object
-
 		if ( cmd == Eof ){
 			exit(0)
 		}
-
 		if ( cmd == Interrupt ) {
-			if( Pyconsole_verbose > 0 ) local_print("<INTERRUPT>")
+			if( Pyconsole_verbose > 0 ) Local_print("<INTERRUPT>")
 			return()
 		}
 		if ( cmd < 0 ) {
@@ -163,17 +271,22 @@ class osc_console {
 				else
 				{
 					# cons.printf("no history yet...\n")
+					print("no history yet...\n")
 					theCmd = ""
 				}
 			}
 			else if (cmd=="!") { 				# liste
 
 				if ($.Histindex > 0){
+					s = ""
 					for(hi = 0; hi < $.Histindex; hi++){
 						# cons.printf("%d: %s\n",hi,$.Hist[hi])
+						s += sprintf("%d: %s\n",hi,$.Hist[hi])
 					}
+					print(s)
 				}else{
 					# cons.printf("no history yet...\n")
+					print("no history yet...\n")
 				}
 				theCmd = ""
 			}
@@ -184,11 +297,17 @@ class osc_console {
 				theCmd = ""
 			}
 			else if ((cmd=="!log") && $.Histindex > 0) {	# sauvegarde (KKlog.txt)
-				logf = open($.HFName,"w")
-				for(hi = 0; hi < $.Histindex; hi++)
-				put(logf, sprintf("%d: %s\n",hi,$.Hist[hi]))
+				$.normalize_logname()
+
+				logf = open(Pyconsole_logfile,"w")
+				for(hi = 0; hi < $.Histindex; hi++){
+					put(logf, sprintf("%d: %s\n",hi,$.Hist[hi]))
+				}
 				close(logf)
 				# cons.printf("%s\n",">>> $.History sauvegardée sous "+$.HFName)
+				s = sprintf("%s\"%s\".\n", ">>> $.History saved in Pyconsole_logfile=",
+					Pyconsole_logfile)
+				print(s)
 				theCmd = ""							
 			}
 			else {
@@ -249,45 +368,34 @@ class osc_console {
 			if ( typeof(Cmd___tmp) == "phrase" ) {
 				t = realmidi(Cmd___tmp,Now)
 				registop(t)
-				# local_print("Ret: ",Cmd___tmp)
+				# Local_print("Ret: ",Cmd___tmp)
 			}
 		}
 	}
 
 
+	# Send string to keykit_console.py.
 	# TODO: buffer + bundle messages (bundles are defined in TUIO standard)
-	method send(s){
+	method send(s, path){
+		if( nargs() < 2 ) path="/keykit/pyconsole/out"
+
 		t = string($.oscsendtarget["port"])+"@"+string($.oscsendtarget["server"])
 		f = open(t,"wb","osc_send")
-		a = [0="/keykit/pyconsole/out",1=s]
-		if( Pyconsole_verbose > 0 ) local_print("Sending OSC message:", a)
+		a = [0=path,1=s]
+		if( Pyconsole_verbose > 0 ) Local_print("Sending OSC message:", a)
 		mdep("osc","send",f,a)
 		close(f)
 	}
 
-	method delete {
-		if($.oscf > -1){
-			close($.oscf)
-			$.oscf = -1
-		}
-		kill($.osctid)
-		$.osctid = -1
+	method get_osc_tid(){
+		return($.osctid)
+	}
+
+	# Only allow .txt or .log extension as overwrite protection.
+	method normalize_logname(){
+		l = Pyconsole_logfile
+		if( l ~~ "^[^ \n\t\r]*[.]log$" || l ~~ "^[^ \n\t\r]*[.]txt$" ) return()
+		Pyconsole_logfile = l + ".log"
 	}
 }
 
-
-function pyconsole(port, hostname){
-	if( nargs() < 2 ) hostname = PYCONSOLE_HOSTNAME
-	if( nargs() < 1 ) port = PYCONSOLE_PORT 
-	LOWKEY=1
-	enable_output()
-
-	pycon = new osc_console(port, hostname)
-
-	local_print("Press Ctrl+C to exit.")
-	while (1) {
-		sleeptill(Now+20b)
-	}
-
-	deleteobject(pycon);
-}

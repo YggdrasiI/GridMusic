@@ -22,6 +22,6 @@ killall $KEYKIT
 # Note that Keykit call this command by it self, too (see GridMusic/start.k )
 ${GRID_MUSIC_ROOT}/scripts/connect_alsa.sh ZynAddSubFX 2 &
 
-# Start
+# Swtich into directory with keyrc.k
 cd $KEYROOT
 $KEYROOT/bin/$KEYKIT contrib/GridMusic/start.k -c "kinect(\"$Func\")" 

@@ -1,31 +1,10 @@
+# Extend SETTINGS handler list
+SETTINGS["halloween"] = (settingHalloween)
+SETTINGS["h2"] = (settingH2)
 
-# setting with one square.
-function setting0(loop){
-
-	possible_notes = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
-	speeds = [0=2b,1=1b,2=48,3=24,4=12]
-	durations = [0=1b,1=4b,2=8b,3=16b,4=32b,5=32b]
-
-	possible_notes2 = []
-	for( i in possible_notes ){
-		n = possible_notes[i]
-		n.chan = 2
-		possible_notes2[i] = n
-	}
-
-	kstore = []
-	piano = new area_piano(possible_notes,durations,30,128)
-	piano2 = new area_piano(possible_notes2,durations,30,128)
-
-	areas = [0=piano,1=piano2]
-
-	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
-	}
-	return(areas)
-}
 
 # setting with four big squares and sliders for volume and bpm.
+# OLD
 function setting1(loop){
 
 	possible_notes = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
@@ -74,6 +53,7 @@ function setting1(loop){
 	return(areas)
 }
 
+# OLD
 function setting2(loop){
 
 	possible_notes = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
@@ -110,6 +90,7 @@ function setting2(loop){
 	return(areas)
 }
 
+# OLD
 function setting3(loop){
 
 	possible_notes = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
@@ -162,6 +143,7 @@ function setting3(loop){
 #         6,b
 #  3,vol          10,free
 #
+# OLD
 function setting4(loop){
 
 	possible_notes = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
@@ -200,6 +182,7 @@ function setting4(loop){
 	return(areas)
 }
 
+# OLD
 function setting5(loop){
 
 	pn1 = [0='c',1='d',2='e',3='f']
@@ -242,6 +225,7 @@ function xxx(ph,tone){
 
 
 # Like setting4, but with  instrument phrases.
+# OLD
 function setting6(loop,nr){
 	if( nargs() < 2) nr = 1
 
@@ -289,6 +273,7 @@ function setting6(loop,nr){
 
 
 # Play different mp3's.
+# OLD
 function settingGst2(loop){
 
 	files=[ 1="/home/olaf//Musik/Ghost in the Shell Stand Alone Complex O.S.T. 3/01 - the end of all you'll know.mp3",
@@ -441,6 +426,7 @@ function kinectSet2(loop){
 
 
 # Halloween, Play different mp3's on two panels
+# OLD
 function settingHalloween(loop){
 
 	speeds = [0=2b,1=1b,2=48,3=24,4=12]
@@ -566,3 +552,6 @@ function settingH2(loop){
 	}
 	return(areas)
 }
+
+
+
