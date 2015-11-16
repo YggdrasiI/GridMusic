@@ -1,4 +1,0 @@
-Frontend for pyconsole.k script. 
-
-- Start pyconsole.k in Keykit (see scripts/console.sh) and run this script as client.
-- Requires pyosc ( https://github.com/ptone/pyosc.git )
