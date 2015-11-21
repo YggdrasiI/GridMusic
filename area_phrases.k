@@ -32,6 +32,9 @@ function settings_phrases{
 
 	# Barrier for entering of stage 2
 	"z_depth_limit2" = 0.25,
+	
+	# Z depth smoothing factor
+	"z_smooth" = 0.3,
 
 	# Normalize volume of all phrases, 0 disables
 	"normalize_volumes" = 1,
@@ -53,7 +56,10 @@ function settings_phrases{
 	# [ range 1 ] [ range 2 ]
 	# [ 1  2  3 ] [ 4  5  6 ]
 	"subslices" = 3,
-	"subslice_minimal_distance" = 2
+	"subslice_minimal_distance" = 2,
+
+	# Multiplicative change of volume during blend out
+	"blend_speed" = 0.95
 	]
 
 	return(set)
@@ -68,10 +74,19 @@ class area_phrases{
 		}
 		$.settings = settings
 
-		# Factor for linear tranformation on vol_range1 plus rescaling on [0,1]
-		$.z_depth_factor1 = float($.settings["vol_range1"]["high"]-$.settings["vol_range1"]["low"])/settings["z_depth_limit2"] / 127
-		$.z_depth_constant1 = float($.settings["vol_range1"]["low"]) / 127
-
+		# The depth range [z_depth_limit1, z_depth_limit2] should be mapped
+		# on [vol_range1["low"], vol_range1["high"]].
+		# But we want select the volume of each note relative. 
+		# - vol_range["high"] correlates with 1 and
+		# - vol_range["low"] correlates with z_depth_constant1
+		# f:[a,b] => [r,s] 
+		# f(x) = d * x + c
+		# r := vol_min/vol_max, s = vol_max/vol_max = 1
+		# d := (s-r)/(b-a), c := -a*d + r
+		tmpFrac = float($.settings["vol_range1"]["low"]) / float($.settings["vol_range1"]["high"])
+		$.z_depth_factor1 = 1.0 - tmpFrac
+		$.z_depth_factor1 /= float($.settings["z_depth_limit2"] - $.settings["z_depth_limit1"] )
+		$.z_depth_constant1 = float(-$.settings["z_depth_limit1"] * $.z_depth_factor1) + tmpFrac
 
 		# State constants
 		$.STATE_TO_FLAT = 1
@@ -144,6 +159,7 @@ class area_phrases{
 		#iy = floor( $.y_range*xyz[1] )
 		#iz = floor( $.z_range*xyz[2] )
 		#ix = sx / $.settings["subslices"]
+		#ixyz = $.get_ixyz(xyz, $.orientation)
 
 		lock($)
 
@@ -164,7 +180,7 @@ class area_phrases{
 		}
 
 		hand["time"] = Now
-		z_smooth = hand["pos"][2]*0.7 + xyz[2]*0.3
+		z_smooth = hand["pos"][2] + (xyz[2] - hand["pos"][2]) * $.settings["z_smooth"]
 		hand["pos"][2] = z_smooth
 
 		# State transitions
@@ -182,7 +198,7 @@ class area_phrases{
 			}
 
 		}else if( hand["state"] == $.STATE_TO_FLAT || hand["state"] == $.STATE_FLAT ){
-			if( xyz[2] > $.settings["z_depth_limit2"] ){ # z or z_smooth
+			if( z_smooth > $.settings["z_depth_limit2"] ){ # z_smooth or raw xyz[2]
 				hand["state"] = $.STATE_TO_DEEP
 
 				z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
@@ -206,7 +222,6 @@ class area_phrases{
 					hand["play_new_slice"] = 1
 				}
 				hand["sx"] = sx
-				#hand["pos"] = xyz # without smooth
 			}
 
 		}
@@ -226,9 +241,10 @@ class area_phrases{
 		for( handid in $.hands ){
 			hand = $.hands[handid]
 			s = hand["state"]
+			#printf("%s %d\n", "State: ", hand["state"])
 
 			# Remove old entries
-			if( (Now -hand["time"]) > 2b ){
+			if( (Now - hand["time"]) > 2b ){
 				verbose("Delete old hand", handid)
 
 				z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
@@ -290,7 +306,7 @@ class area_phrases{
 					delete( hand["play_new_slice"] )
 
 					ph = $.new_note_flat( hand, $.settings["phrases1"][0] )
-					hand["ph"] = ph
+					#hand["ph"] = ph # redundant
 
 					# Filter out pressure changes for same notes to avoid collision
 					ph_changes = filter_notes(ph_changes, ph)
@@ -299,10 +315,10 @@ class area_phrases{
 				}else{
 					# Adapt volume
 					z2 = hand["pos"][2] * $.z_depth_factor1 + $.z_depth_constant1
-					if( (hand["vol_factor"] - z2) * $.settings["vol_range1"]["high"] > 3 ){
+					if( abs(hand["vol_factor"] - z2) * $.settings["vol_range1"]["high"] > 3 ){
 						hand["vol_factor"] = z2
 						ph.vol *= z2
-						verbose(ph,ph.vol,z2)
+						#verbose(ph,ph.vol,z2, hand["pos"][2], $.settings["z_depth_limit2"], $.z_depth_factor1, $.z_depth_constant1)
 
 						# Remove new played notes to avoid collision
 						ph = filter_notes(ph, ph_new_to_play)
@@ -325,13 +341,16 @@ class area_phrases{
 
 		# blending phrases
 		$.remove_from_blendout(ph_new_to_play)
-		ph_changes |= $.get_blendout(0.95)
+		ph_changes |= $.get_blendout($.settings["blend_speed"])
 
-		if( sizeof(ph_new_to_play) > 0 )
-		verbose("play", ph_new_to_play)
+		if( sizeof(ph_new_to_play) > 0 ){
+			verbose("play", ph_new_to_play)
+		}
 
 		# Change type to pressure
+		#tmp = ph_changes
 		ph_changes = pressure(ph_changes)
+		#if( tmp != '' ){ print("Changes:", tmp) }
 
 		# Finally, play notes
 		realtime( ph_changes | ph_new_to_play, Now)
@@ -385,8 +404,16 @@ class area_phrases{
 		ph = $.blendout
 		ph.vol *= damping_factor
 		$.blendout = ph
+		#ret = $.blendout
+		# Note that rounding errors leads to 
+		#    ph.vol * x = ph.vol
+		# for x nearby 1 and vol nearby 0.
+		# Thus, we filter out silent notes
+		noteoff = $.blendout { ??.vol < 30 }
+		$.blendout = $.blendout { ??.vol >= 30 }
 		ret = $.blendout
-		$.blendout = $.blendout { ??.vol > 0 }
+		noteoff.vol = 0
+		ret = ret | noteoff
 		unlock($)
 		return(ret)
 	}

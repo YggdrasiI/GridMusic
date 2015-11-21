@@ -32,10 +32,10 @@ syn keyword pythonRepeat	for while
 syn keyword pythonOperator	in is 
 "syn keyword pythonException	try except finally raise try
 syn keyword pythonException	break continue
-syn keyword pythonInclude	from import 
+syn keyword pythonInclude	from import  #import
 syn keyword keykitSpecial	Now Root MIXED NOTE NOTEOFF NOTEON PRESSURE CONTROLLER PITCHBEND PROGRAM CHANPRESSURE MIDIBYTES
 syn keyword keykitSpecial	SYSEX POSITION SONG STARTSTOPCONT CLOCK
-syn keyword keykitSpecial	readonly undefine global
+syn keyword keykitSpecial	readonly undefine global defined eval
 "syn keyword keykitSpecial	include library define
 "
 " Types for cut(phrase, type, ...)
@@ -51,8 +51,11 @@ syn match   pythonDecorator	"@" display nextgroup=pythonFunction skipwhite
 syn match   pythonFunction
       \ "\%(\%(def\s\|class\s\|@\)\s*\)\@<=\h\%(\w\|\.\)*" contained
 
-syn match   pythonComment	"#.*$" contains=pythonTodo,@Spell
+syn match   pythonComment	"#.*$" contains=pythonTodo,@Spell,hashtagKeywords
 syn keyword pythonTodo		FIXME NOTE NOTES TODO XXX contained
+"syn keyword hashtagKeywords	^include #define #library
+syn match hashtagKeywords	"^\s*#include.*$"
+syn match hashtagKeywords	"#define.*$"
 
 syn keyword keykitDollar	$
 
@@ -189,7 +192,7 @@ if !exists("python_no_builtin_highlight")
 	\ wgrabbag_mon toolize waitup waitdown waitnsweep xymid wselect whelp drawx fillspace
 	\ wresize wmax wdelete wswap wcopy wsnarf wsnarftool wpastetool wmove sweeptool
 	\ wshowdump wbroadcast wdump wrestore grabmouse ungrabmouse grabmousefifo ungrabmousefifo fit2root areacontains
-	\ closenkill kerror kserver konnectinterp
+	\ keylocal closenkill kerror kserver konnectinterp
   
 endif
 
@@ -253,6 +256,7 @@ if version >= 508 || !exists("did_python_syn_inits")
   HiLink pythonEscape		Special
   HiLink keykitSpecial		Include
   HiLink keykitPhraseProp	Special
+  HiLink hashtagKeywords	Include
   if !exists("python_no_number_highlight")
     HiLink pythonNumber		Number
   endif

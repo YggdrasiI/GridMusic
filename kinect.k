@@ -67,15 +67,17 @@ function looper(areas, kstore) {
 	kstore["looper"] = new looperobj(OSCPORT, areas)
 	KSTORE = kstore
 
+	GridMusic_run = 1
+
 	#if( defined(LOWKEY) ){
 	if( Graphics == 0 ){
 		print("Press Ctrl+C to exit.")
-		while (1) {
+		while ( GridMusic_run ) {
 			sleeptill(Now+20b)
 		}
 	}else{
 		print("Press Esc to exit.")
-		while (1) {
+		while ( GridMusic_run ) {
 			c = Root.waitforconsolekey()
 			if ( ascii(c) == 27 ) {
 				break

@@ -179,6 +179,97 @@ function set_pressure(note,pressure){
 
 # ----------------------------------------------
 
-function test_reflection(){
+# Test functionality of area_phrases
+function test_phrases_stage1(){
+	print("== Run test_phrases")
+	print("Create area_phrases object")
+	settings = settings_phrases()
+	testarea = new area_phrases(settings)
 
+	print("Test stage 1")
+	steps = 30
+	# First hand, increasing depth
+	xs1 = 0.1
+	ys1 = 0.1
+	zs1 = settings["z_depth_limit1"] + 0.01
+	zs1end = settings["z_depth_limit2"] - 0.01
+	zs1d = (zs1end-zs1)/float(steps)
+
+	# Second hand, lowering depth
+	xs2 = 0.8
+	ys2 = 0.8
+	zs2 = settings["z_depth_limit2"] - 0.01
+	zs2end = settings["z_depth_limit1"] + 0.01
+	zs2d = (zs2-zs2end)/float(steps)
+
+	testarea.update(1,1,[0=xs1,1=ys1,2=zs1])
+	testarea.update(1,2,[0=xs2,1=ys2,2=zs2])
+	for( i = 0; i < steps; i++){
+		zs1 += zs1d
+		zs2 -= zs2d
+		sleeptill(Now+30)
+		#print("Update stage 1")
+		testarea.update(1,1,[0=xs1,1=ys1,2=zs1])
+		testarea.update(1,2,[0=xs2,1=ys2,2=zs2])
+	}
+
+	sleeptill(Now+10b)
+
+	print("Delete area_phrases object")
+	deleteobject(testarea)
+	alloff()
+	print("== Quit test_phrases")
+}
+
+function test_phrases_stage2(){
+	print("== Run test_phrases")
+	print("Create area_phrases object")
+	settings = settings_phrases()
+	testarea = new area_phrases(settings)
+
+	z = settings["z_depth_limit1"] + 0.01
+
+	print("Test stage 1")
+	testarea.update(1,1,[0=0.5,1=0.5,2=z])
+	sleeptill(Now+30)
+
+	xs1 = 0.1
+	ys1 = 0.1
+	zs1 = z
+	zs1end = settings["z_depth_limit2"] - 0.01
+	zs1d = (zs1end-zs1)/40.0
+	testarea.update(1,1,[0=xs1,1=ys1,2=zs1])
+	for( i = 0; i < 40; i++){
+		zs1 += zs1d
+		sleeptill(Now+30)
+		#print("Update stage 1")
+		testarea.update(1,1,[0=xs1,1=ys1,2=zs1])
+	}
+	sleeptill(Now+2b)
+
+	print("Test stage 2")
+	# Go into stage 2
+	testarea.update(1,1,[0=0.9,1=0.9,2=0.5])
+
+	# Move the hand
+	x2 = 0.0
+	for( i = 0; i< 20; i++){
+		z -= 0.01
+		x2 += 0.05
+		sleeptill(Now+20)
+		testarea.update(1,1,[0=x2,1=x2,2=z])
+	}
+	for( i = 0; i< 20; i++){
+		z += 0.01
+		x2 -= 0.05
+		sleeptill(Now+20)
+		testarea.update(1,1,[0=x2,1=x2,2=z])
+	}
+
+	sleeptill(Now+500)
+
+	print("Delete area_phrases object")
+	deleteobject(testarea)
+	alloff()
+	print("== Quit test_phrases")
 }

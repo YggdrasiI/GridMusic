@@ -530,22 +530,22 @@ function settingH2(loop){
 	#stepfile1 = new area_stepfile(possible_notes0,durations2,30,128, data)
 
 	tonleiter = 'c, d, e, f, g, a, b, cc4'
-	tonleiter.chan = 4
+	tonleiter.chan = 1
 
 	# Test of area_phrases class
 	#song = readmf("midi/beatles/Yesterday.mid")
 
 	sh = settings_phrases()
-	sh["z_depth_limit1"] = 0.05
+	sh["z_depth_limit1"] = 0.15
 	#sh["z_depth_limit2"] = 0.75
-	sh["z_depth_limit2"] = 0.06
+	sh["z_depth_limit2"] = 1.1
 	sh["vol_range1"] = ["low"=50,"high"=120]
 	#sh["phrases2"] = [0=song]
 	sh["phrases2"] = [0=tonleiter]
 	phrases = new area_phrases(sh)
 
 	kstore = []
-	areas = [ 0=piano_1, 1=piano_0, 2=phrases, 3=phrases ]
+	areas = [ 0=phrases, 1=piano_0, 2=phrases, 3=phrases ]
 
 	if(nargs() < 1 || loop != 0){
 		looper(areas, kstore)
