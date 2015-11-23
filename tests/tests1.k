@@ -182,12 +182,17 @@ function set_pressure(note,pressure){
 # Test functionality of area_phrases
 function test_phrases_stage1(){
 	print("== Run test_phrases")
+	print("    One note fade in and")
+	print("    one note fade out.")
+	print("")
 	print("Create area_phrases object")
 	settings = settings_phrases()
 	testarea = new area_phrases(settings)
 
+	settings["phrases1"][0].chan = 1
+
 	print("Test stage 1")
-	steps = 30
+	steps = 40
 	# First hand, increasing depth
 	xs1 = 0.1
 	ys1 = 0.1
@@ -223,38 +228,26 @@ function test_phrases_stage1(){
 
 function test_phrases_stage2(){
 	print("== Run test_phrases")
+	print("    One hand moves around")
+	print("    and a few notes should be heared.")
+	print("")
 	print("Create area_phrases object")
 	settings = settings_phrases()
 	testarea = new area_phrases(settings)
 
 	z = settings["z_depth_limit1"] + 0.01
-
-	print("Test stage 1")
+	# One stage 1 step
 	testarea.update(1,1,[0=0.5,1=0.5,2=z])
 	sleeptill(Now+30)
 
-	xs1 = 0.1
-	ys1 = 0.1
-	zs1 = z
-	zs1end = settings["z_depth_limit2"] - 0.01
-	zs1d = (zs1end-zs1)/40.0
-	testarea.update(1,1,[0=xs1,1=ys1,2=zs1])
-	for( i = 0; i < 40; i++){
-		zs1 += zs1d
-		sleeptill(Now+30)
-		#print("Update stage 1")
-		testarea.update(1,1,[0=xs1,1=ys1,2=zs1])
-	}
-	sleeptill(Now+2b)
-
 	print("Test stage 2")
 	# Go into stage 2
-	testarea.update(1,1,[0=0.9,1=0.9,2=0.5])
+	z = settings["z_depth_limit2"] + 0.01
+	testarea.update(1,1,[0=0.9,1=0.9,2=z])
 
 	# Move the hand
 	x2 = 0.0
 	for( i = 0; i< 20; i++){
-		z -= 0.01
 		x2 += 0.05
 		sleeptill(Now+20)
 		testarea.update(1,1,[0=x2,1=x2,2=z])

@@ -474,6 +474,7 @@ function settingHalloween(loop){
 
 # Ein Pianofeld und ein Trompetenfeld zum Testen
 # beider Klassen.
+# Matching zynaddsubfx file: Halloween2015.xmz
 function settingH2(loop){
 
 	N = 5
@@ -532,14 +533,19 @@ function settingH2(loop){
 	tonleiter = 'c, d, e, f, g, a, b, cc4'
 	tonleiter.chan = 1
 
+	#stage1 = 'cd1100 gd1100t1000 ed1100t2000 +ct3000'
+	stage1 = '+c et60 ft30'
+	stage1.chan = 4
+
 	# Test of area_phrases class
 	#song = readmf("midi/beatles/Yesterday.mid")
 
 	sh = settings_phrases()
 	sh["z_depth_limit1"] = 0.15
 	#sh["z_depth_limit2"] = 0.75
-	sh["z_depth_limit2"] = 1.1
+	sh["z_depth_limit2"] = 0.95
 	sh["vol_range1"] = ["low"=50,"high"=120]
+	sh["phrases1"] = [0=stage1]
 	#sh["phrases2"] = [0=song]
 	sh["phrases2"] = [0=tonleiter]
 	phrases = new area_phrases(sh)

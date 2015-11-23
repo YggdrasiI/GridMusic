@@ -1,4 +1,4 @@
-# 2015, TODO
+# 2015
 # Area contains two different depth stages.
 # Stage 1: Vague tone. This stage should inform the users
 #			about the presence of the area. Moreover, the xy-Position
@@ -9,7 +9,7 @@
 #
 # Note about notation of notes:
 # NOTEON-notes has no duration. Thus '+c, +e' equals '+c +e'!
-# Do set time distance use '+c, +et96' or
+# To set time distance use '+c, +et96' or
 # ph = 'c e'; ph.type = NOTEON
 
 # Return struct which stores the settings for area_phrases
@@ -18,7 +18,8 @@ function settings_phrases{
 	phB = 'c, d, e, f, g, a, b'; phB.type = NOTEON
 
 	set = [
-	# Flat stage, just first index used.
+	# Flat stage, just first index of array used.
+	# !! Use NOTEON type to allow pressure changes after activation of phrase!
 	"phrases1" = [0='+c'],
 	#"vol_range1" = ["low"=20, "high"=40],
 	"vol_range1" = ["low"=40, "high"=100],
@@ -39,10 +40,10 @@ function settings_phrases{
 	# Normalize volume of all phrases, 0 disables
 	"normalize_volumes" = 1,
 
-	# Restrict phrases on channel, 0 disables
+	# Restrict phrases channel on normalize_channel, 0 disables
 	"normalize_channel" = 0 ,
 
-	# x axis defines can define different pitches stage 2 phrases.
+	# x axis can define different pitches for stage 1 phrases.
 	"pitch_offsets" = [0=-8, 1=0],
 
 	# Minimal distance till next note will be played (in stage 2, [0,1]² plane)
@@ -348,14 +349,12 @@ class area_phrases{
 		}
 
 		# Change type to pressure
-		#tmp = ph_changes
 		ph_changes = pressure(ph_changes)
-		#if( tmp != '' ){ print("Changes:", tmp) }
 
 		# Finally, play notes
 		realtime( ph_changes | ph_new_to_play, Now)
 
-		sleeptill(Now+30)
+		sleeptill(Now+32)
 
 	}
 
