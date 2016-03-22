@@ -1,17 +1,3 @@
-# 2015
-# Area contains two different depth stages.
-# Stage 1: Vague tone. This stage should inform the users
-#			about the presence of the area. Moreover, the xy-Position
-#			can be used to select and pitch the phrases of stage 2.
-# Stage 2: Track the midpoint of a hand and play the next note
-#			of a pharse if the hand was moved a few units away. The
-#			direction of movemend does not count but the speed.
-#
-# Note about notation of notes:
-# NOTEON-notes has no duration. Thus '+c, +e' equals '+c +e'!
-# To set time distance use '+c, +et96' or
-# ph = 'c e'; ph.type = NOTEON
-
 # Return struct which stores the settings for area_phrases
 function settings_phrases{
 	phA = 'e,c,ao2,go2';
@@ -67,6 +53,31 @@ function settings_phrases{
 }
 
 class area_phrases{
+
+	method help(parent){
+		print("area_phrases help")
+		print("")
+    print("Area contains two different depth stages.")
+    print("Stage 1: Vague tone. This stage should inform the user")
+    print("		about the presence of the area. Moreover, the xy-Position")
+    print("		can be used to select and pitch the phrases of stage 2.")
+    print("Stage 2: Track the midpoint of a hand and play the next note")
+    print("		of a pharse if the hand was moved a few units away. The")
+    print("		direction of movemend does not count but the speed.")
+    print("")
+    print("Attention, if you use the NOTEON-notes (suitable for stage 1)")
+    print("consider following property:")
+    print("NOTEON-notes has no duration. Thus '+c, +e' equals '+c +e'!")
+    print("To set time distance use '+c, +et96' or")
+    print("ph = 'c e'; ph.type = NOTEON")
+		print("")
+
+		for( child in $.inherited() ){
+			if( child.classof() == "area" ){
+				print( child.help($) )
+			}
+		}
+	}
 
 	# public
 	method init( settings ) {
@@ -455,15 +466,6 @@ class area_phrases{
 		ph_off |= $.get_blendout(0.0)
 		realtime(ph_off,Now)
 
-	}
-
-	method help(parent){
-		print("area_phrases help")
-		for( child in $.inherited() ){
-			if( child.classof() == "area" ){
-				print( child.help($) )
-			}
-		}
 	}
 }
 

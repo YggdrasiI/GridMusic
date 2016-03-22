@@ -51,20 +51,26 @@ Todo
 See INSTALL.
 
 ============= Usage ===================
-0. Look at kinect.k
-1. Set OSCPORT (default 3335) to your desired port.
-2. Write a class MYAREA (or use the examples in the kinect_areas*-files) which inherit from
-area
-3. Create an instance of your area
-		myarea = new MYAREA([...])
-	and call
-		looper([1=myarea], [])
-	Now, all updates of area 1 will call the update handler of myarea…
+To load the default setting, type the following into
+the command line window of keykit:
+  > k = new kinect("settingPiano", 1)
+  > [...]
+  > k.stop()
+  > deleteobject(k)
 
-4. Look at the settings*() methodes in kinect.k for some examples.
-	I.e. setting0() connect the first area with a simple major scale.
+The object listen at the port OSCPORT (default: 3335) for TUIO messages.
+To load the same setting without gui (lowkey), you can use 
+scripts/lowkey.sh. Check scripts/environment.sh if Keykit do not start.
+  > cd GridMusic/scripts
+  > ./lowkey settingPiano
 
-5. Some example areas:
+If you want define own settings look into settings.k and copy one of them
+into mysettings.k and extend the array SETTINGS by the new entry, i.e.
+  SETTINGS["{name}"] = {function}.
+
+Each setting function return an list of area-objects. Object 0 fetches the touch
+event on area 0 and so on...
+Some areas:
 	•area_piano : Plays one note. Pitch, duration and volume is selected by hand position.
 	•area_playmidi : Require list of midi files. Play & Stop midis if area is touched.
 	•area_bpm : Change the global bpm.

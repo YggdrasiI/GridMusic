@@ -181,5 +181,13 @@ class area_knob{
 		#unlock($)
 	}
 
+	method help(parent){
+		print("area_knob help")
+		for( child in $.inherited() ){
+			if( child.classof() == "area" ){
+				print( child.help($) )
+			}
+		}
+	}
 }#end class area_knob
 

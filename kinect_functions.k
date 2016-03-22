@@ -251,21 +251,34 @@ function swap(arrA,indexA,arrB,indexB){
 ## Some area related functions
 ###############################
 
-# return 7 pads. The indizes match to the frame with 7 big and 4 halve areas.
+# return 7 pads. 
+# The indizes match to the frame with 7 big and 4 halve areas, thus 0,3,7 and 10 are skipped.
 function pianoPads(){
 
-	durations = [0=1b,1=2b,2=4b,3=4b,4=4b,5=4b]
+	settings = settings_piano()
+	settings["durations"] = [0=1b,1=2b,2=4b,3=4b,4=4b,5=4b]
+	settings["vol_range"] = ["low" = 60, "high" = 100]
+
 	s2 = durarr('co2')
 	s3 = durarr('c')
 	s4 = durarr('co4')
+	s5 = durarr('co5')
 
-	piano_c = new area_piano([0=s3[0],1=s4[0]],durations,50,128)
-	piano_d = new area_piano([1=s3[1],1=s4[1]],durations,50,128)
-	piano_e = new area_piano([2=s3[2],1=s4[2]],durations,50,128)
-	piano_f = new area_piano([3=s3[3],1=s4[3]],durations,50,128)
-	piano_g = new area_piano([4=s2[4],1=s3[4]],durations,50,128)
-	piano_a = new area_piano([5=s2[5],1=s3[5]],durations,50,128)
-	piano_b = new area_piano([6=s2[6],1=s3[6]],durations,50,128)
+	# Same setting for each pad, but different notes
+	settings["notes"] = [0=s3[0],1=s4[0]]
+	piano_c = new area_piano(settings)
+	settings["notes"] = [1=s3[1],1=s4[1]]
+	piano_d = new area_piano(settings)
+	settings["notes"] = [2=s3[2],1=s4[2]]
+	piano_e = new area_piano(settings)
+	settings["notes"] = [3=s3[3],1=s4[3]]
+	piano_f = new area_piano(settings)
+	settings["notes"] = [4=s2[4],1=s3[4]]
+	piano_g = new area_piano(settings)
+	settings["notes"] = [5=s2[5],1=s3[5]]
+	piano_a = new area_piano(settings)
+	settings["notes"] = [6=s2[6],1=s3[6]]
+	piano_b = new area_piano(settings)
 
 	areas = [1=piano_c, 2=piano_f, 4=piano_d, 5=piano_g, 6=piano_b, 8=piano_e, 9=piano_a ]
 	return(areas)
@@ -298,7 +311,7 @@ function deletesubitems(obj,arr){
 ## Midi message functions
 ###############################
 
-# convert note messages to pressure messages
+# Convert note messages to pressure messages
 # better&faster solution will be
 # 'ph.type = PRESSURE' functionality, but this
 # does not work for me.
@@ -316,7 +329,10 @@ function pressure(ph){
 	return(ret)
 }
 
-# return bytes to change instrument
+# Return bytes to change instrument.
+#
+# To filter out messages which changes the instrument
+# use ph = ph { ??.type != PROGRAM }
 function change_instrument( channel, index ){
 	statusbyte = 0xC0 + channel
 	data1 = index & 0x7F

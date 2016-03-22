@@ -29,72 +29,79 @@
 #include contrib/GridMusic/settings.k
 #include contrib/GridMusic/mysettings.k
 
-# OLD
-##include contrib/GridMusic/tests.k
+# Other approach for settings storage without this bag of global variables.
+# unused
+function setting_kinect(){
+	return([
+	"unused" = -1
+	])
+}
+
 
 ############### MAIN CLASS ####################
 
-# This main loop wait on TUIO messages and call the update handler
+# This loop wait on TUIO messages and call the update handler
 # of one area.
-function looper(areas, kstore) {
-	if ( nargs() < 1 ){
-		areas = setting3(0)
-	}
-	if ( nargs() < 2 ){
-		kstore = []
-	}
-	if( typeof(areas) != "array" || typeof(kstore) != "array" ){
-		print("looper: Input has wrong format!")
-		return()
-	}
+# OLD
+#function looperX(areas, kstore) {
+#	if ( nargs() < 1 ){
+#		areas = setting3(0)
+#	}
+#	if ( nargs() < 2 ){
+#		kstore = []
+#	}
+#	if( typeof(areas) != "array" || typeof(kstore) != "array" ){
+#		print("looper: Input has wrong format!")
+#		return()
+#	}
+#
+#	#init some global variables....
+#	if( !defined(GLOBALVOL) ) GLOBALVOL = 80
+#	if( !("clipboard" in kstore) ) kstore["clipboard"] = []
+#	if( !("record" in kstore) ) kstore["record"] = ''
+#	if( !("record_starttime" in kstore) ) kstore["record_starttime"] = Now
+#	kstore["record_active"] = 0
+#
+#	#start osc looper
+#	sleeptill(Now+2b)
+#	verbose("STARTING OSC TEST LOOPER...")
+#	if ( OSCPORT <= 0 ) {
+#		print("Hey, OSCPORT needs to be set")
+#		#OSCPORT = 3335
+#		return()
+#	}
+#
+#	kstore["looper"] = new osc_looper(OSCPORT, areas)
+#	KSTORE = kstore
+#
+#	GridMusic_run = 1
+#
+#	#if( defined(LOWKEY) ){
+#	if( Graphics == 0 ){
+#		print("Press Ctrl+C to exit.")
+#		while ( GridMusic_run ) {
+#			sleeptill(Now+20b)
+#		}
+#	}else{
+#		print("Press Esc to exit.")
+#		while ( GridMusic_run ) {
+#			c = Root.waitforconsolekey()
+#			if ( ascii(c) == 27 ) {
+#				break
+#			}
+#			print("ignoring c=",c)
+#			sleeptill(Now+2b)
+#		}
+#	}
+#
+#	#clean up
+#	deleteobject(kstore["looper"])
+#	for( i in kstore["clipboard"]) deleteobject(kstore["clipboard"][i])
+#	KSTORE = []
+#}
 
-	#init some global variables....
-	if( !defined(GLOBALVOL) ) GLOBALVOL = 80
-	if( !("clipboard" in kstore) ) kstore["clipboard"] = []
-	if( !("record" in kstore) ) kstore["record"] = ''
-	if( !("record_starttime" in kstore) ) kstore["record_starttime"] = Now
-	kstore["record_active"] = 0
-
-	#start osc looper
-	sleeptill(Now+2b)
-	verbose("STARTING OSC TEST LOOPER...")
-	if ( OSCPORT <= 0 ) {
-		print("Hey, OSCPORT needs to be set")
-		#OSCPORT = 3335
-		return()
-	}
-
-	kstore["looper"] = new looperobj(OSCPORT, areas)
-	KSTORE = kstore
-
-	GridMusic_run = 1
-
-	#if( defined(LOWKEY) ){
-	if( Graphics == 0 ){
-		print("Press Ctrl+C to exit.")
-		while ( GridMusic_run ) {
-			sleeptill(Now+20b)
-		}
-	}else{
-		print("Press Esc to exit.")
-		while ( GridMusic_run ) {
-			c = Root.waitforconsolekey()
-			if ( ascii(c) == 27 ) {
-				break
-			}
-			print("ignoring c=",c)
-			sleeptill(Now+2b)
-		}
-	}
-
-	#clean up
-	deleteobject(kstore["looper"])
-	for( i in kstore["clipboard"]) deleteobject(kstore["clipboard"][i])
-	KSTORE = []
-}
-
-## Main obj.
-class looperobj {
+## Listener for OSC port
+class osc_looper {
 	method init(OSCPORT, areas) {
 
 		#load setting for hand areas of mmtt
@@ -103,25 +110,28 @@ class looperobj {
 		#$.areas = (funcname)()
 		$.areas = areas
 		$.areas_size = sizeof($.areas);
-
+		$.osctid = -1
 		$.osclistenport = OSCPORT
-		#s = string($.osclistenport)+"@"+Hostname
-		#s = string($.osclistenport)+"@127.0.0.1"
-		s = string($.osclistenport)+"@0.0.0.0"
-		$.oscf = open(s,"rA","osc_listen")
+		$.osclistenhost = "0.0.0.0"
+
+		$.oscf = open($.getHost(),"rA","osc_listen")
 		if ( $.oscf < 0 ) {
 			print("Unable to listen on ",Osclisten," !?")
-			$.osctid = -1
 		} else {
-			print("Listening for OSC on ",s," ...")
 			#start loop for mmtt osc messages
-			$.osctid = task $.osctask()
+			#$.start() 
 		}
 
 		$.lastosc = 0
 
 	}
 
+	method getHost(){
+		#s = string($.osclistenport)+"@"+Hostname
+		#s = string($.osclistenport)+"@127.0.0.1"
+		s = string($.osclistenport)+"@"+$.osclistenhost
+		return(s)
+	}
 	method handle_tuio_message(d){
 		lock($)
 		if ( d[1] == "alive" ){
@@ -165,7 +175,6 @@ class looperobj {
 			}
 
 			lock($)
-
 			$.lastosc = Now
 			unlock($)
 		}
@@ -190,6 +199,23 @@ class looperobj {
 		#unlock($)
 	}
 
+	method start(){
+		if( $.osctid != -1 ){
+			verbose("Server already started.")
+			return(-1)
+		}
+		verbose("Listening for OSC on ",$.getHost()," ...")
+		$.osctid = task $.osctask()
+		return(0)
+	}
+
+	method stop(){
+		verbose("Kill listening task")
+		kill($.osctid)
+		$.osctid = -1
+		return(0)
+	}
+
 	method delete {
 		if($.oscf > -1){
 			close($.oscf)
@@ -203,6 +229,84 @@ class looperobj {
 		$.areas = []
 	}
 }
+
+
+class kinect{
+	method init(funcname, start){
+		LOWKEY=1
+		$.areas = []
+		$.init_store()
+		$.osc_looper = -1
+
+    if( string(funcname) in SETTINGS ){
+      handle = SETTINGS[string(funcname)]
+    }else{
+      handle = -1
+    }
+		if( typeof(handle) == "function" ){
+			verbose("Start configuration %s\n", funcname)
+			$.areas = handle(0)
+		}else{
+			printf("Error! Configuration %s not found.\nDoes SETTINGS variable contain your handler?\n\n", funcname)
+		}
+
+		if( nargs() > 1 && start != 0){
+			$.start()
+		}
+	}
+
+	# Global clipboard variable for GridMusic
+	method init_store(){
+		if( !defined(GLOBALVOL) ) GLOBALVOL = 80
+		if( !defined(GridMusic_store) ){
+			GridMusic_store = []
+			KSTORE = GridMusic_store # old name
+		}
+
+		# Reset values
+		if( !("clipboard" in GridMusic_store) ) GridMusic_store["clipboard"] = []
+		if( !("record" in GridMusic_store) ) GridMusic_store["record"] = ''
+		if( !("record_starttime" in GridMusic_store) ) GridMusic_store["record_starttime"] = Now
+		GridMusic_store["record_active"] = 0
+	}
+
+	method start(){
+		# init osc looper at first call
+		if( $.osc_looper == -1 ){
+			verbose("Create osc listener object...")
+			if ( OSCPORT <= 0 ) {
+				print("Hey, OSCPORT needs to be set")
+				return(-2)
+			}
+			$.osc_looper = new osc_looper(OSCPORT, $.areas)
+			GridMusic_store["looper"] = $.osc_looper
+		}
+
+		# start osc looper
+		GridMusic_run = 1
+		return($.osc_looper.start())
+	}
+
+	method stop(){
+		GridMusic_run = 0
+		return ($.osc_looper.stop())
+	}
+
+	method delete(){
+		if( $.osc_looper != -1 ){
+			deleteobject($.osc_looper)
+		}
+
+		#clean up
+		#deleteobject(GridMusic_store["looper"])
+		#for( i in GridMusic_store["clipboard"]) deleteobject(GridMusic_store["clipboard"][i])
+	}
+
+	method get_areas(){
+		return($.areas)
+	}
+}
+
 
 ########## END MAIN CLASS ####################
 

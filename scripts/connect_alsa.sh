@@ -2,11 +2,11 @@
 # Search for keykit and ZynAddSubFX and connect both.
 
 # Target application
-TARGET="ZynAddSubFX"
+TARGET="\(ZynAddSubFX\|FLUID\)"
 test -z "$1" || TARGET="$1"
 
 # Optional wait on keykit startup
-WAIT_TIME=0
+WAIT_TIME=2
 test -z "$2" || WAIT_TIME="$2"
 sleep "$WAIT_TIME"
 

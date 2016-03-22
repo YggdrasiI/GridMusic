@@ -266,3 +266,27 @@ function test_phrases_stage2(){
 	alloff()
 	print("== Quit test_phrases")
 }
+
+
+# ----------------------------------------------
+function GridMusic_test_help(){
+	tests = [
+	0 = ["name" = "basetest",
+		"desc" = "Minimal test to check connection between keykit and midi synthesiszer."],
+	1 = ["name" = "test_phrases_stage1",
+		"desc" = "Test stage 1 of area_phrases"],
+	2 = ["name" = "test_phrases_stage2",
+		"desc" = "Test stage 2 of area_phrases"],
+	3 = ["name" = "test_channel_volume_changes",
+		"desc" = ""],
+	4 = ["name" = "test_pressure_support",
+		"desc" = "Send midi pressure messages. They are not supported by all synthesiszers."]
+	]
+	
+	print("== Available tests ==")
+	for( t in tests ){
+		print( tests[t]["name"], "\t", tests[t]["desc"])
+	}
+  eval(tests[0]["name"]+"()")
+}
+

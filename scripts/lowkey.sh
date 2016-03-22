@@ -4,7 +4,7 @@
 ####################################
 
 # Input handling
-Func="settingPiano"
+Func="settingPiano"  # Default setting
 test -z "$1" || Func="$1" 
 
 # Normalize path. GRID_MUSIC_ROOT will be used to find GridMusic/tests in Keykit
@@ -18,10 +18,12 @@ export DISPLAY=""
 # Kill running instance of keykit
 killall $KEYKIT
 
-# Connect with midi sequenzer after short delay
-# Note that Keykit call this command by it self, too (see GridMusic/start.k )
-${GRID_MUSIC_ROOT}/scripts/connect_alsa.sh ZynAddSubFX 2 &
+# Connect with midi sequenzer after short delay.
+# Note that this only works after keykit enabled it's midi output port.
+# It is commented out here because GridMusic already calls the script,
+# see GridMusic/base_functions.k + GridMusic/start.k 
+#${GRID_MUSIC_ROOT}/scripts/connect_alsa.sh ZynAddSubFX 2 &
 
 # Swtich into directory with keyrc.k
 cd $KEYROOT
-$KEYROOT/bin/$KEYKIT contrib/GridMusic/start.k -c "kinect(\"$Func\")" 
+$KEYROOT/bin/$KEYKIT contrib/GridMusic/start.k -c "start_kinect(\"$Func\")" 

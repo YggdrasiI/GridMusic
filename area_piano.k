@@ -1,8 +1,3 @@
-# Simple class to play one note.
-# xyz Orientation defines note, volume and duration.
-# The input (movement) and output (sending midi) are
-# sperated into two tasks. (Avoid blocking of output.)
-
 # Return struct which stores the settings for area_piano
 function settings_piano{
 	default_notes = [0='c',1='d',2='e',3='f',4='g',5='a',6='b',7='co4']
@@ -27,6 +22,32 @@ function settings_piano{
 }
 
 class area_piano{
+  
+  #public
+	method help(parent){
+		print("area_piano help")
+		print("")
+    print("Simple class to play a note/phrase.")
+    print("The input handling (hand movement messages) and output handling (midi messages) are")
+    print("sperated into two tasks.")
+    print("")
+		print("If the default orientation will be used, the horizontal position")
+		print("define which pharse will be played. The vertical direction controls the")
+		print("volume and the depth value controls the duration.")
+    print("")
+    print("Example usage:")
+    print(" sp = setting_piano()")
+    print(" [change default settings]")
+    print(" area = new area_piano(sp)")
+    print("")
+
+		for( child in $.inherited() ){
+			if( child.classof() == "area" ){
+				print( child.help($) )
+			}
+		}
+	}
+
 	#method init(notes, durations, vol_min, vol_max) {
 	method init( settings ) {
 		if( nargs() < 1 ){

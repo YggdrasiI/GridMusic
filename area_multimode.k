@@ -1,17 +1,18 @@
-# Combine four functions in one knob:
-# (Egdes of 3x3 Grid)
+# Combine four operations at the edges of a 3x3 grid. This
+# is a implementation of the knop class and can be used 
+# to record & play loops.
 # -------
 #  0 | 1
 # -------
 #  2 | 3
 # -------
-# 0. Copy phrase:   		[Push knob] [Push source] [Push target]
+#    OPERATION					PUSH ORDER
+# 0. Copy phrase:   		{this knob} {source area} {target area}
 #												If (target==source) the last recorded phrase will copied.
-# 1. Record phrase: 		[Push knob] [Push piano area]* [Push knob]
-# 2. Play/Stop phrase: 	[Push knob] [Push source]
-# 3. Modify phrase: 		[Push knob] [Push source] [Push modification]
+# 1. Record phrase: 		{this knob} {piano area}* {this knob}
+# 2. Play/Stop phrase: 	{this knob} {source area}
+# 3. Modify phrase: 		{this knob} {source area} {modification}
 #
-# (Implemtation of knob class)
 
 
 class area_multimode{

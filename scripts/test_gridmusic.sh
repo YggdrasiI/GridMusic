@@ -4,7 +4,7 @@
 ####################################
 
 # Input handling
-Func="basetest()"
+Func="GridMusic_test_help()"
 test -z "$1" || Func="$1" 
 
 # Normalize path. GRID_MUSIC_ROOT will be used to find GridMusic/tests in Keykit

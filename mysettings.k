@@ -48,7 +48,7 @@ function setting1(loop){
 	areas = [0=volume_area, 1=drums, 2=drums, 3=piano, 4=piano, 5=piano, 6=piano, 7=bpm_area, 8=playmidi, 9=playmidi, 10=volume_area]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }
@@ -85,7 +85,7 @@ function setting2(loop){
 	areas = [0=volume_area, 1=d1, 2=d2, 3=volume_area, 4=d4, 5=d5, 6=d6, 7=bpm_area, 8=d8, 9=d9, 10=switcher]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }
@@ -128,7 +128,7 @@ function setting3(loop){
 	areas = [0=volume_area, 1=stepfile1, 2=stepfile1, 3=switcher, 4=stepfile1, 5=stepfile1, 6=stepfile1, 7=bpm_area, 8=stepfile1, 9=stepfile1, 10=mp3]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }
@@ -177,7 +177,7 @@ function setting4(loop){
 	areas = [0=volume_area, 1=piano_c, 2=piano_f, 3=volume_area,  4=piano_d, 5=piano_g, 6=piano_b, 7=volume_area, 8=piano_e, 9=piano_a, 10=volume_area ]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }
@@ -211,7 +211,7 @@ function setting5(loop){
 	areas = [0=volume_area, 1=stepfile_c, 2=stepfile_f, 3=switcher, 4=stepfile_d, 5=stepfile_g, 6=stepfile_b, 7=bpm_area, 8=stepfile_e, 9=stepfile_a, 10=mp3]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }
@@ -266,7 +266,7 @@ function setting6(loop,nr){
 	areas = [0=volume_area, 1=piano_c, 2=piano_f, 3=switcher, 4=piano_d, 5=piano_g, 6=piano_b, 7=bpm_area, 8=piano_e, 9=piano_a, 10=playmidi]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }
@@ -320,7 +320,7 @@ function settingGst2(loop){
 	areas = [0=volume_area, 1=mp3_1, 2=mp3_2, 3=switcher, 4=mp3_4, 5=mp3_5, 6=mp3_6, 7=bpm_area, 8=mp3_8, 9=mp3_9, 10=playmidi]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }
@@ -369,7 +369,7 @@ function kinectSet1(loop){
 	areas = [0=volume_area, 1=piano1, 2=piano2, 3=switcher,  4=piano4, 5=piano5 , 6=trumpet, 7=channel_area, 8=piano8, 9=piano9, 10=volume_area ]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }
@@ -418,7 +418,7 @@ function kinectSet2(loop){
 	areas = [0=volume_area, 1=piano1, 2=piano2, 3=switcher,  4=piano4, 5=piano5 , 6=trumpet, 7=channel_area, 8=piano8, 9=piano9, 10=volume_area ]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }
@@ -467,7 +467,7 @@ function settingHalloween(loop){
 	areas = [ 0=piano_0, 1=piano_1, 2=piano_2, 3=piano_3 ]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }
@@ -535,6 +535,7 @@ function settingH2(loop){
 
 	#stage1 = 'cd1100 gd1100t1000 ed1100t2000 +ct3000'
 	stage1 = '+c et60 ft30'
+	#stage1 = '+c'
 	stage1.chan = 4
 
 	# Test of area_phrases class
@@ -554,7 +555,7 @@ function settingH2(loop){
 	areas = [ 0=phrases, 1=piano_0, 2=phrases, 3=phrases ]
 
 	if(nargs() < 1 || loop != 0){
-		looper(areas, kstore)
+		task looper(areas, kstore)
 	}
 	return(areas)
 }

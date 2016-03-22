@@ -3,6 +3,15 @@
 
 class area_channelswitcher{
 
+	method help(parent){
+		print("area_channelswitcher help")
+		for( child in $.inherited() ){
+			if( child.classof() == "area" ){
+				print( child.help($) )
+			}
+		}
+	}
+
 	method init(channels, kstore) {
 		if( typeof(channels) != "array" ){
 			print("First argument needs to be an array!")
