@@ -14,7 +14,7 @@ source ${GRID_MUSIC_ROOT}/scripts/environment.sh
 killall $KEYKIT
 
 # Connect with midi sequenzer after short delay
-${GRID_MUSIC_ROOT}/scripts/connect_alsa.sh ZynAddSubFX 2 &
+${GRID_MUSIC_ROOT}/scripts/connect_alsa.sh 2 ZynAddSubFX &
 
 # Swtich into directory with keyrc.k
 cd $KEYROOT

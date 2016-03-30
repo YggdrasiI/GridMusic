@@ -21,7 +21,7 @@ export DISPLAY=""
 killall $KEYKIT
 
 # Script now called by Keykit itself, see GridMusic/start.k
-#${GRID_MUSIC_ROOT}/scripts/connect_alsa.sh ZynAddSubFX 2 &
+#${GRID_MUSIC_ROOT}/scripts/connect_alsa.sh 2 ZynAddSubFX &
 
 # Start
 cd $KEYROOT

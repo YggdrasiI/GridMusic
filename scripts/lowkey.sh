@@ -22,7 +22,7 @@ killall $KEYKIT
 # Note that this only works after keykit enabled it's midi output port.
 # It is commented out here because GridMusic already calls the script,
 # see GridMusic/base_functions.k + GridMusic/start.k 
-#${GRID_MUSIC_ROOT}/scripts/connect_alsa.sh ZynAddSubFX 2 &
+#${GRID_MUSIC_ROOT}/scripts/connect_alsa.sh 2 ZynAddSubFX &
 
 # Swtich into directory with keyrc.k
 cd $KEYROOT
