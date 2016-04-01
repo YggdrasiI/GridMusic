@@ -1,18 +1,18 @@
-# Loop through array of channel numbers for MAINCHANNEL
+# Send midi commands to switch midi instrument of current bank.
 # (Implemtation of knob class)
 
-function settings_channelswitcher{
+function settings_instrumentswitcher{
 	set = [
-	# Available channels
-	"channels" = [0=1, 1=2, 2=3],
+	# Channel to change
+	"channel" = 1, # keykit channel 1 = midi channel 0
 
-	# Phrases which will be played if channel was switched.
-	# phrase1 will not modified, but the channel of pharase2
-	# represents the current active MAINCHANNEL.
+	# Available instruments
+	"instruments" = [0=1, 1=2, 2=3],
+
+	# Phrase which will be played if channel was switched.
 	# Use '' to mute.
 	# Use function handler to create phrase dynamically.
-	"phrase1" = 'co2',
-	"phrase2" = 'co3',
+	"phrase" = 'go2,go3',
 
 	# Flag to enable cycling from last to first element.
 	"cycle" = 1,
@@ -20,7 +20,7 @@ function settings_channelswitcher{
 	# You can define different increments for the position
 	# of the hand.
 	# I.e. use -1 on the left side to go backward and +1 on the right side
-	# to go forward in the list of channels.
+	# to go forward in the list of instruments.
 	"push_increments" = [0=-1, 1=1],
 
 	# 0, 1. Defines which dimension (x,y) should be used to
@@ -33,12 +33,12 @@ function settings_channelswitcher{
 	return(base_set)
 }
 
-class area_channelswitcher{
+class area_instrumentswitcher{
 
 	method help(parent){
-		print("area_channelswitcher help")
+		print("area_instrumentswitcher help")
 		print("")
-		print("Cycle value of MAINCHANNEL.")
+		print("Send midi commands to switch midi instrument of current bank.")
 		print("")
 		print("Implementation of area_knob class.")
 		for( child in $.inherited() ){
@@ -50,11 +50,11 @@ class area_channelswitcher{
 
 	method init(settings) {
 		if( nargs() < 1 ){
-			settings = settings_channelswitcher()
+			settings = settings_instrumentswitcher()
 		}
 		$.settings = settings
-		$.channels = copy_array2(settings["channels"])
-		if( sizeof($.channels) < 1 ) $.channels=[0=1]
+		$.instruments = copy_array2(settings["instruments"])
+		if( sizeof($.instruments) < 1 ) $.instruments=[0=1]
 		$.cur_chan_index = 0
 		$.direction_index = $.settings["direction_index"]
 
@@ -65,11 +65,6 @@ class area_channelswitcher{
 		$.settings["handler"]["push_on"] = $.push_handler
 		$.settings["handler"]["push_off"] = $.push_handler
 		$.inherit( new area_knob($.settings) )
-
-		if( typeof(MAINCHANNEL) != "integer" ){
-			print("(area_channelswitcher) Warning, class changes global variable MAINCHANNEL,")
-			print(" but it is no integer.")
-		}
 	}
 
 	method push_handler(areaid, handid, xyz){
@@ -78,17 +73,20 @@ class area_channelswitcher{
 
 		next_chan_index = ($$.cur_chan_index + dir_value)
 		if( $.settings["cycle"] ){
-			next_chan_index = next_chan_index % sizeof($$.channels)
+			next_chan_index = next_chan_index % sizeof($$.instruments)
 			if( next_chan_index < 0 ){
-				next_chan_index += sizeof($$.channels)
+				next_chan_index += sizeof($$.instruments)
 			}
 		}else{
-			next_chan_index = limit(0, next_chan_index, sizeof($$.channels))
+			next_chan_index = limit(0, next_chan_index, sizeof($$.instruments))
 		}
 		$$.cur_chan_index = next_chan_index
 
-		verbose("Change main channel to", MAINCHANNEL,".")
-		MAINCHANNEL = $$.channels[$$.cur_chan_index]
+		channel = $.settings["channel"]
+		index = $$.instruments[$$.cur_chan_index]
+		ph_change = change_instrument(channel-1, index)
+		verbose("Change instrument of channel ", channel, "to", index)
+		realtime(ph_change, Now)
 		$$.play_switch_phrase()
 
 		return(0)
@@ -96,16 +94,11 @@ class area_channelswitcher{
 
 	# Parse and play phrase to indicate change.
 	method play_switch_phrase(){
-		ph1 = $.settings["phrase1"]
-		if( typeof(ph1) == "function" ){
-			ph1 = ph1()
+		ph = $.settings["phrase"]
+		if( typeof(ph) == "function" ){
+			ph = ph()
 		}
-		ph2 = $.settings["phrase2"]
-		if( typeof(ph2) == "function" ){
-			ph2 = ph2()
-		}
-		ph2.chan = MAINCHANNEL
-		realtime(ph1|ph2, Now)
+		realtime(ph, Now)
 	}
 
 	method delete(){

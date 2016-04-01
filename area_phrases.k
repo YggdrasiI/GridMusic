@@ -19,7 +19,7 @@ function settings_phrases{
 
 	# Barrier for entering of stage 2
 	"z_depth_limit2" = 0.25,
-	
+
 	# Z depth smoothing factor
 	"z_smooth" = 0.3,
 
@@ -88,10 +88,10 @@ class area_phrases{
 
 		# The depth range [z_depth_limit1, z_depth_limit2] should be mapped
 		# on [vol_range1["low"], vol_range1["high"]].
-		# But we want select the volume of each note relative. 
+		# But we want select the volume of each note relative.
 		# - vol_range["high"] correlates with 1 and
 		# - vol_range["low"] correlates with z_depth_constant1
-		# f:[a,b] => [r,s] 
+		# f:[a,b] => [r,s]
 		# f(x) = d * x + c
 		# r := vol_min/vol_max, s = vol_max/vol_max = 1
 		# d := (s-r)/(b-a), c := -a*d + r
@@ -415,7 +415,7 @@ class area_phrases{
 		ph.vol *= damping_factor
 		$.blendout = ph
 		#ret = $.blendout
-		# Note that rounding errors leads to 
+		# Note that rounding errors leads to
 		#    ph.vol * x = ph.vol
 		# for x nearby 1 and vol nearby 0.
 		# Thus, we filter out silent notes
@@ -453,7 +453,7 @@ class area_phrases{
 
 	method delete(){
 		lock($)
-		kill($.loopid) 
+		kill($.loopid)
 		unlock($)
 
 		#noteoff messages

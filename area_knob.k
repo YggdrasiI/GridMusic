@@ -73,11 +73,16 @@ class area_knob{
 		}
 		$.settings = settings
 		$.inherit( new area($.settings["dimX"], $.settings["dimY"], 5) )
+		# Flag is 1 if push_on returned 1 (which fires replace handler)
 		$.active = 0
+		# Flag if a hand pushed an area. This could be an arbitary tracked area.
 		$.pushed = 0
+		# Id of last pushed area
 		$.lastid = -1
+		# Id where active flag was set
 		$.knobid = -1
-		$.last_refresh_time = -1
+		# Timestamp of last push
+		$.last_pushed_time = -1
 
 		if( ! ("looper" in $.settings)
 			&& typeof(GridMusic_store) == "array"
@@ -86,14 +91,14 @@ class area_knob{
 			$.settings["looper"] = GridMusic_store["looper"]
 		}
 
-		rids = $.settings["replace_ids"] 
+		rids = $.settings["replace_ids"]
 		for( i in rids ){
 			id = rids[i]
 			if( typeof(rids[id]) != "object" ){
 				print("(area_knob) This line should not be reached. Update your usage of this class.")
 				# Pitfall: We need $$ here, not $! Unfortunately we can not
 				# reference $$ here.
-				$.settings["replace_areas"][id] = $  
+				$.settings["replace_areas"][id] = $ 
 			}
 		}
 
@@ -116,23 +121,25 @@ class area_knob{
 	}
 
 	method update_handler(areaid, handid, xyz) {
-		iz = floor($.dimZ*xyz[2])
-		td = Now-$.last_refresh_time;
+		iz = floor($.dim[2]*xyz[2])
+		td = Now-$.last_pushed_time;
 		#		lock($)
 		if( $.pushed == 1 && ((iz < 2 && td > 1b && areaid == $.lastid) || td > 3b ) ){
 			#change push flag if last pushed area is leaved or some time elapsed
 			$.pushed = 0
+			$.last_pushed_time = Now
 			if( $.lastid == $.knobid ){
 				$$.release($.knobid, handid, xyz) #attention, handid matching in general to areaid, not knobid.
-				#$.last_refresh_time = Now
 			}
 		}
 
 		if( iz > 2 ){
-			if( areaid != $.lastid && td>48 ) $.pushed = 0
+			# Forget old activation pushes at other area.
+			if( areaid != $.lastid && td>48b ) $.pushed = 0
 
 			if( $.pushed == 0 ){
 				$.pushed = 1
+				$.last_pushed_time = Now
 				$.lastid = areaid
 				if( $.knobid == -1 || $.knobid == areaid){
 					#the knob is pushed.
@@ -160,8 +167,8 @@ class area_knob{
 			}
 		}
 
-		if( areaid == $.lastid ){
-			$.last_refresh_time = Now
+		if( areaid == $.lastid && $.pushed > 0){
+			#$.last_pushed_time = Now
 		}
 		#		unlock($)
 	}
@@ -184,7 +191,7 @@ class area_knob{
 		}
 	}
 
-	# replace $ with backuped areas
+	# restore backuped areas
 	method default_restore_handler(){
 		if( !"looper" in $.settings ){
 			verbose("Restore areas. No looper object with areas defined.", $, $$)
@@ -201,7 +208,7 @@ class area_knob{
 			}
 		}
 	}
-	
+
 	# Return 1 if pushing should influence internal state of this object.
 	method default_push_handler(areaid, handid, xyz){
 		if( !$.active ){

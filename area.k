@@ -6,14 +6,14 @@
 # - $.update (input handle) and
 # - $.play (output handle).
 class area {
-	method init(dimX,dimY,dimZ) {
+	method init(dimX, dimY, dimZ) {
 		if( nargs() == 1 && typeof(dimX) == "array" ){
 			$.dim = dimX
 		}else{
 			if( nargs() < 3 ) dimZ = 1
 			if( nargs() < 2 ) dimY = 1
 			if( nargs() < 1 ) dimX = 1
-			$.dim = [0=dimX,1=dimY,2=dimZ]
+			$.dim = [0=dimX, 1=dimY, 2=dimZ]
 		}
 
 		verbose("create area")
@@ -54,8 +54,8 @@ class area {
 		return($$.settings)
 	}
 
-	# Mapping of [0,1]³ onto [0,dimX]x[0,dimY]x[0,dimZ]
-	# for indizies = [0=0,1=1,2=2]. Other indizies could be used to swap dimensions or
+	# Mapping of [0, 1]³ onto [0, dimX]x[0, dimY]x[0, dimZ]
+	# for indizies = [0=0, 1=1, 2=2]. Other indizies could be used to swap dimensions or
 	# to derive just one compontent.
 	method get_ixyz(xyz, indizies ) {
 		i = []

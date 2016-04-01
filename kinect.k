@@ -8,12 +8,13 @@
 #include contrib/GridMusic/oscplayer.k
 #include contrib/GridMusic/gst123.k
 #include contrib/GridMusic/area_bpm.k
-#include contrib/GridMusic/area_channelswitcher.k
 #include contrib/GridMusic/area_drum.k
 #include contrib/GridMusic/area_gst123.k
 #include contrib/GridMusic/area_systemcalls.k
 #include contrib/GridMusic/area.k
 #include contrib/GridMusic/area_knob.k
+#include contrib/GridMusic/area_channelswitcher.k
+#include contrib/GridMusic/area_instrumentswitcher.k
 #include contrib/GridMusic/area_multimode.k
 #include contrib/GridMusic/area_piano.k
 #include contrib/GridMusic/area_playmidi.k
@@ -119,7 +120,7 @@ class osc_looper {
 			print("Unable to listen on ",Osclisten," !?")
 		} else {
 			#start loop for mmtt osc messages
-			#$.start() 
+			#$.start()
 		}
 
 		$.lastosc = 0
@@ -246,8 +247,8 @@ class kinect{
 		if( typeof(handle) == "function" ){
 			verbose("Start configuration %s\n", funcname)
 			$.areas = handle(0)
-		}else{
-			printf("Error! Configuration %s not found.\nDoes SETTINGS variable contain your handler?\n\n", funcname)
+		}elif( funcname != "" ){
+			printf("Warning, configuration '"+funcname+"' not found.\nDoes SETTINGS variable contain your handler?\n\n", funcname)
 		}
 
 		if( nargs() > 1 && start != 0){

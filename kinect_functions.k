@@ -251,7 +251,7 @@ function swap(arrA, indexA, arrB, indexB){
 ## Some area related functions
 ###############################
 
-# return 7 pads. 
+# return 7 pads.
 # The indizes match to the frame with 7 big and 4 halve areas, thus 0, 3, 7 and 10 are skipped.
 function pianoPads(){
 
