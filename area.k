@@ -69,10 +69,15 @@ class area {
 	# and keys of settings array.
 	method help( parent ) {
 		if( nargs() > 0 && typeof(parent) == "object" ){
-			print("Available settings:")
-			for( s in parent.get_settings() ){
-				print("  ", s)
+			print("Available settings (keys of array):")
+			settings = parent.get_settings()
+			xarraysort = Arraysort
+			Arraysort = 1
+			for( s in settings ){
+				print("\t", s)
 			}
+			Arraysort = xarraysort
+			print("")
 		}else{
 			print("Abstract class area.")
 			print("Call help method of derived classes\n for more detailed information.\n")
@@ -81,7 +86,7 @@ class area {
 	}
 
 	method delete() {
-		#print("delete area")
+		print("delete area")
 		if( $$.loopid != -1 ){
 			verbose($$.loopid, $.loopid)
 			kill($$.loopid)

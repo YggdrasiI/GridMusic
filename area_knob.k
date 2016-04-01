@@ -1,68 +1,105 @@
 ### Abstract class for knob. Could be used for triggers, etc.
-#
-# replace_ids can define areaids which will replaced by this object or the objects in replace_areas.
-#  The active areas in the osc looper will replaced it the knob is active.
-# There are four events:
-# - Area activated/push_on (any hand)
-# - Area deactivated/push_off (any hand)
-# - Area released (any hand)
-# - (optional, if area pushed) other Area selected
-#
-# Example for replacing:
-# replace_ids = [0=1,1=3,2=5]
-# replace_areas = [3=A1, 5=A2]
-# => areas[1] will replaced with $, areas[3] with A1 and area[5] with A2
-#
-#
-# Attention: The line	$.replace_areas[id] = $
-# in the knob contructor has a pitfall. If you inherit and call knob's
-# init() method, $ points to the knob object, but not $$.
-# To avoid this set up the replace_areas array before you call area_knob's init().
-#
-# Implemtations of knob class:
-# area_channelswitcher
-# area_multimode
-###########################################
+function settings_knob{
+	set = [
+	# Horizontal number of slices
+	"dimX" = 1,
+	# Vertical number of slices
+	"dimY" = 1,
 
+	# Indizies for function handler:
+	# push_on, push_off, release, select (, replace, restore)
+	# See help text for more information.
+	"handler" = [],
+
+	# Ids and objects for area replacement.
+	# See help text for more information.
+	"replace_ids" = [],
+	"replace_areas" = []
+	]
+	return(set)
+}
 
 class area_knob{
-	method init(dimX, dimY, kstore, handler, replace_ids, replace_areas) {
-		$.inherit( new area(dimX, dimY, 5) )
+
+	method help(parent){
+		if( nargs() < 1 ){
+			print("area_knob help")
+			print("")
+			print("Abstract class for knob. Could be used for triggers, etc.")
+			print("")
+			print(" Four different events will be handled:")
+			print(" - push_on: Knob activated with push on area X (=:knobid) ")
+			print(" - push_off: Second push in areas[knobid] (arbitary hand).")
+			print(" - release: Hand leaves areas[knobid] (arbitary hand).")
+			print(" - select: Push event on areas with id != knobid. (optional, see note for replacing areas)")
+			print("")
+			print(" Replacing Areas")
+			print(" If you want spread the functionality of the knob on multiple areas (i.e. some kind of selection task) you can use the replace_* arguments.")
+			print(" - replace_ids: Define area ids which will replaced by this object")
+			print("                or the objects in replace_areas.")
+			print("                The active areas in the osc looper will replaced if the knob is active.")
+			print(" - replace_areas: Array with objectes for replacing task.")
+			print("")
+			print(" Example for replacing:")
+			print("  replace_ids = [0=1, 1=3, 2=5]  ; Replacing of area 1, area 3 and area 5.")
+			print("  replace_areas = [3=A1, 5=A2]   ; Area 3 object will be replaced by A1.")
+			print("                                 ; Area 5 object will be replaced by A2.")
+			print("                                 ; Area 1 object implicit replaced by $.")
+			print("")
+			print(" Attention: The line	")
+			print("  $.replace_areas[id] = $")
+			print("  in the knob contructor has a pitfall. If you inherit this class and call knob's")
+			print("  init() method, $ points to the knob object, but not $$.")
+			print("  To avoid this problem set up the replace_areas array before you call area_knob's init(),")
+			print("  see area_multimode.init().")
+			print("")
+			print(" Implementations of knob class:")
+			print(" area_channelswitcher")
+			print(" area_multimode")
+			print("")
+		}
+
+		for( child in $.inherited() ){
+			if( child.classof() == "area" ){
+				print( child.help($) )
+			}
+		}
+	}
+
+	#method init(dimX, dimY, handler, kstore, replace_ids, replace_areas) {
+	method init(settings){
+		if( nargs() < 1 ){
+			settings = settings_knob()
+		}
+		$.settings = settings
+		$.inherit( new area($.settings["dimX"], $.settings["dimY"], 5) )
 		$.active = 0
 		$.pushed = 0
 		$.lastid = -1
 		$.knobid = -1
 		$.last_refresh_time = -1
-		$.kstore = kstore
 
-		if(nargs() < 6){
-			replace_areas = []
+		if( ! ("looper" in $.settings)
+			&& typeof(GridMusic_store) == "array"
+			&& "looper" in GridMusic_store
+		){
+			$.settings["looper"] = GridMusic_store["looper"]
 		}
-		if(nargs() < 5){
-			$.replace_ids = []
-			$.replace_areas = []
-		}else{
-			$.replace_ids = replace_ids
-			$.replace_areas = replace_areas
-			for( i in $.replace_ids ){
-				id = $.replace_ids[i]
-				if( typeof($.replace_areas[id]) != "object" ){
-					#if( id in $.replace_areas )
-					print("Should not be reached.")
-					$.replace_areas[id] = $  # $$, not $! Das ist hier aber nicht mgl.
-				}
+
+		rids = $.settings["replace_ids"] 
+		for( i in rids ){
+			id = rids[i]
+			if( typeof(rids[id]) != "object" ){
+				print("(area_knob) This line should not be reached. Update your usage of this class.")
+				# Pitfall: We need $$ here, not $! Unfortunately we can not
+				# reference $$ here.
+				$.settings["replace_areas"][id] = $  
 			}
 		}
 
 		$.update = $.update_handler
-		#$.push_on = $$.default_push_handler
-		#$.push_off = $$.default_push_handler
-		#$.release = $$.default_release_handler
 
-		if( nargs() < 4 ){
-			handler = []
-		}
-
+		handler = $.settings["handler"]
 		if( typeof(handler["select"]) == "function" ) $.select = handler["select"]
 		else $.select = $.default_select_handler
 		if( typeof(handler["release"]) == "function" ) $.release = handler["release"]
@@ -114,10 +151,10 @@ class area_knob{
 						}
 					}
 				}else{
-					#an other area pad invoked is pushed.
+					#an other area pad was is pushed.
 					#print("Select area !", areaid, " Knob is ", $.knobid);
 					verbose("Select area !", areaid, $, $$);
-					realtime('do1c12v128', Now)
+					#realtime('do1c12v128', Now)
 					$$.select(areaid, handid, xyz)
 				}
 			}
@@ -131,33 +168,48 @@ class area_knob{
 
 	# replace areas with $
 	method default_replace_handler(){
+		if( !"looper" in $.settings ){
+			verbose("Replace areas. No looper object with areas defined.", $, $$)
+			return()
+		}
 		verbose("Replace areas", $, $$)
-		areas = $.kstore["looper"].get_areas()
-		for( i in $.replace_ids ){
-			if( $.knobid != $.replace_ids[i]){
-				swap($.replace_areas, $.replace_ids[i], areas, $.replace_ids[i])
+
+		areas = $.settings["looper"].get_areas()
+		rids = $.settings["replace_ids"]
+		ras = $.settings["replace_areas"]
+		for( i in rids ){
+			if( $.knobid != rids[i]){
+				swap(ras, rids[i], areas, rids[i])
 			}
 		}
 	}
 
 	# replace $ with backuped areas
 	method default_restore_handler(){
+		if( !"looper" in $.settings ){
+			verbose("Restore areas. No looper object with areas defined.", $, $$)
+			return()
+		}
 		verbose("Restore areas")
-		areas = $.kstore["looper"].get_areas()
-		for( i in $.replace_ids ){
-			if( $.knobid != $.replace_ids[i]){
-				swap($.replace_areas, $.replace_ids[i], areas, $.replace_ids[i])
+
+		areas = $.settings["looper"].get_areas()
+		rids = $.settings["replace_ids"]
+		ras = $.settings["replace_areas"]
+		for( i in rids ){
+			if( $.knobid != rids[i]){
+				swap(ras, rids[i], areas, rids[i])
 			}
 		}
 	}
-
+	
+	# Return 1 if pushing should influence internal state of this object.
 	method default_push_handler(areaid, handid, xyz){
 		if( !$.active ){
 			verbose("Knob activated (default handler).", areaid)
-			realtime('co3v128d200', Now)
+			#realtime('co3v128d200', Now)
 		}else{
 			verbose("Knob deactivated (default handle).", areaid)
-			realtime('co2v128d200', Now)
+			#realtime('co2v128d200', Now)
 		}
 		return(1)
 	}
@@ -168,7 +220,7 @@ class area_knob{
 
 	method default_select_handler(areaid, handid, xyz){
 		verbose("Area ",areaid," selected. (default handler)");
-		realtime('go2v128d100', Now)
+		#realtime('go2v128d100', Now)
 	}
 
 
@@ -177,17 +229,9 @@ class area_knob{
 		#lock($)
 		#delete replaced areas, too.
 		#This objects should not destroied here?!
-		deletesubitems($,$.replace_areas)
+		deletesubitems($,$.settings["replace_areas"])
 		#unlock($)
 	}
 
-	method help(parent){
-		print("area_knob help")
-		for( child in $.inherited() ){
-			if( child.classof() == "area" ){
-				print( child.help($) )
-			}
-		}
-	}
 }#end class area_knob
 

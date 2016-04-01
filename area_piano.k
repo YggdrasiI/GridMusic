@@ -22,24 +22,24 @@ function settings_piano{
 }
 
 class area_piano{
-  
-  #public
+
+	#public
 	method help(parent){
 		print("area_piano help")
 		print("")
-    print("Simple class to play a note/phrase.")
-    print("The input handling (hand movement messages) and output handling (midi messages) are")
-    print("sperated into two tasks.")
-    print("")
+		print("Simple class to play a note/phrase.")
+		print("The input handling (hand movement messages) and output handling (midi messages) are")
+		print("sperated into two tasks.")
+		print("")
 		print("If the default orientation will be used, the horizontal position")
 		print("define which pharse will be played. The vertical direction controls the")
 		print("volume and the depth value controls the duration.")
-    print("")
-    print("Example usage:")
-    print(" sp = setting_piano()")
-    print(" [change default settings]")
-    print(" area = new area_piano(sp)")
-    print("")
+		print("")
+		print("Example usage:")
+		print(" sp = setting_piano()")
+		print(" [change default settings]")
+		print(" area = new area_piano(sp)")
+		print("")
 
 		for( child in $.inherited() ){
 			if( child.classof() == "area" ){

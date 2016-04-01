@@ -1,5 +1,5 @@
 # Combine four operations at the edges of a 3x3 grid. This
-# is a implementation of the knop class and can be used 
+# is a implementation of the knob class and can be used 
 # to record & play loops.
 # -------
 #  0 | 1
@@ -16,6 +16,15 @@
 
 
 class area_multimode{
+
+	method help(parent){
+		print("area_multimode help")
+		for( child in $.inherited() ){
+			if( child.classof() == "area" ){
+				print( child.help($) )
+			}
+		}
+	}
 
 	method init(kstore) {
 		#map grid cell number to mode

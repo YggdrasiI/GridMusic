@@ -278,7 +278,9 @@ class kinect{
 				print("Hey, OSCPORT needs to be set")
 				return(-2)
 			}
+			lock($)
 			$.osc_looper = new osc_looper(OSCPORT, $.areas)
+			unlock($)
 			GridMusic_store["looper"] = $.osc_looper
 		}
 

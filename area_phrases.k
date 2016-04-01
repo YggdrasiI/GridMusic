@@ -160,7 +160,7 @@ class area_phrases{
 		$.update = $.update_handler
 		$.play = $.play_handler
 
-		$.loopid = -1
+		#$.loopid = -1
 		$.loopid = task $.playloop()
 	}
 
@@ -452,7 +452,9 @@ class area_phrases{
 	}
 
 	method delete(){
-		kill($.loopid) # double kill
+		lock($)
+		kill($.loopid) 
+		unlock($)
 
 		#noteoff messages
 		ph_off=''
@@ -465,7 +467,6 @@ class area_phrases{
 		#verbose("Note off message:", ph_off)
 		ph_off |= $.get_blendout(0.0)
 		realtime(ph_off,Now)
-
 	}
 }
 

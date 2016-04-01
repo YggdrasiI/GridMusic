@@ -224,6 +224,7 @@ function test_phrases_stage1(){
 	deleteobject(testarea)
 	alloff()
 	print("== Quit test_phrases")
+	return(0)
 }
 
 function test_phrases_stage2(){
@@ -265,8 +266,66 @@ function test_phrases_stage2(){
 	deleteobject(testarea)
 	alloff()
 	print("== Quit test_phrases")
+	return(0)
+	# Hm, function doesn't return. Play task blockades even if kill(tid) stops it?!
 }
 
+# ----------------------------------------------
+
+# Test functionality of area_knob and derivatives
+function test_knobs(){
+	print("== Run test_knobs")
+	print("")
+
+  VERBOSE=1
+	print("Create area_knob object")
+	testarea = new area_knob()
+  deleteobject(testarea)
+
+	print("Create area_channelswitcher object")
+	settings = settings_channelswitcher()
+	testarea = new area_channelswitcher(settings)
+
+	print("Create and setup kinect, osc_looper and GridMusic_store objects")
+  k = new kinect("", 0)
+  k.get_areas()[0] = testarea
+  k.start()
+
+	print("Push five times right")
+	steps = 10
+
+  for( j = 0; j < steps; j++){
+    print("Push ", j)
+    xs1 = 0.9
+    ys1 = 0.5
+    zs1 = 0.0
+    zs1end = 0.9
+    zs1d = (zs1end-zs1)/float(steps)
+
+    testarea.update(1,1,[0=xs1,1=ys1,2=zs1])
+    for( i = 0; i < steps; i++){
+      zs1 += zs1d
+      sleeptill(Now+30)
+      testarea.update(1,1,[0=xs1,1=ys1,2=zs1])
+    }
+    for( i = 0; i < steps; i++){
+      zs1 -= zs1d
+      sleeptill(Now+30)
+      testarea.update(1,1,[0=xs1,1=ys1,2=zs1])
+    }
+  }
+
+	sleeptill(Now+10b)
+  
+	print("Delete kinect object")
+  deleteobject(k)
+
+	print("Delete area_knob object")
+	deleteobject(testarea)
+	alloff()
+	print("== Quit test_knobs")
+	return(0)
+}
 
 # ----------------------------------------------
 function GridMusic_test_help(){
@@ -280,7 +339,9 @@ function GridMusic_test_help(){
 	3 = ["name" = "test_channel_volume_changes",
 		"desc" = ""],
 	4 = ["name" = "test_pressure_support",
-		"desc" = "Send midi pressure messages. They are not supported by all synthesiszers."]
+		"desc" = "Send midi pressure messages. They are not supported by all synthesiszers."],
+	5 = ["name" = "test_knobs",
+		"desc" = "Test area_knob and area_channelswitcher class"]
 	]
 	
 	print("== Available tests ==")
