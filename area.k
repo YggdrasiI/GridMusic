@@ -59,9 +59,15 @@ class area {
 	# to derive just one compontent.
 	method get_ixyz(xyz, indizies ) {
 		i = []
-		for( k in indizies ){
-			i[k] = floor( $.dim[indizies[k]] * xyz[indizies[k]] )
-		}
+    if( nargs() > 1 ){
+      for( k in indizies ){
+        i[k] = floor( $.dim[indizies[k]] * xyz[indizies[k]] )
+      }
+    }else{
+      for( k in xyz ){
+        i[k] = floor( $.dim[k] * xyz[k] )
+      }
+    }
 		return(i)
 	}
 

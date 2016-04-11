@@ -84,12 +84,13 @@ class area_knob{
 		# Timestamp of last push
 		$.last_pushed_time = -1
 
-		if( ! ("looper" in $.settings)
-			&& typeof(GridMusic_store) == "array"
-			&& "looper" in GridMusic_store
-		){
-			$.settings["looper"] = GridMusic_store["looper"]
-		}
+		# Removed. No good Idea store this locally.
+		#if( ! ("looper" in $.settings)
+		#	&& typeof(GridMusic_store) == "array"
+		#	&& "looper" in GridMusic_store
+		#){
+		#	$.settings["looper"] = GridMusic_store["looper"]
+		#}
 
 		rids = $.settings["replace_ids"]
 		for( i in rids ){
@@ -135,7 +136,7 @@ class area_knob{
 
 		if( iz > 2 ){
 			# Forget old activation pushes at other area.
-			if( areaid != $.lastid && td>48b ) $.pushed = 0
+			if( areaid != $.lastid && td>2b ) $.pushed = 0
 
 			if( $.pushed == 0 ){
 				$.pushed = 1
@@ -160,7 +161,7 @@ class area_knob{
 				}else{
 					#an other area pad was is pushed.
 					#print("Select area !", areaid, " Knob is ", $.knobid);
-					verbose("Select area !", areaid, $, $$);
+					verbose("(area_knob) Select area !", areaid, $, $$);
 					#realtime('do1c12v128', Now)
 					$$.select(areaid, handid, xyz)
 				}
@@ -175,13 +176,13 @@ class area_knob{
 
 	# replace areas with $
 	method default_replace_handler(){
-		if( !"looper" in $.settings ){
-			verbose("Replace areas. No looper object with areas defined.", $, $$)
+		if( !"looper" in GridMusic_store ){
+			verbose("(area_knob) Replace areas. No looper object defined.")
 			return()
 		}
-		verbose("Replace areas", $, $$)
+		verbose("(area_knob) Replace areas")
 
-		areas = $.settings["looper"].get_areas()
+		areas = GridMusic_store["looper"].get_areas()
 		rids = $.settings["replace_ids"]
 		ras = $.settings["replace_areas"]
 		for( i in rids ){
@@ -193,13 +194,13 @@ class area_knob{
 
 	# restore backuped areas
 	method default_restore_handler(){
-		if( !"looper" in $.settings ){
-			verbose("Restore areas. No looper object with areas defined.", $, $$)
+		if( !"looper" in GridMusic_store ){
+			verbose("(area_knob) Restore areas skiped. No looper object defined.")
 			return()
 		}
-		verbose("Restore areas")
+		verbose("(area_knob) Restore areas")
 
-		areas = $.settings["looper"].get_areas()
+		areas = GridMusic_store["looper"].get_areas()
 		rids = $.settings["replace_ids"]
 		ras = $.settings["replace_areas"]
 		for( i in rids ){
@@ -212,27 +213,28 @@ class area_knob{
 	# Return 1 if pushing should influence internal state of this object.
 	method default_push_handler(areaid, handid, xyz){
 		if( !$.active ){
-			verbose("Knob activated (default handler).", areaid)
+			verbose("(area_knob) Knob activated (default handler).", areaid)
 			#realtime('co3v128d200', Now)
 		}else{
-			verbose("Knob deactivated (default handle).", areaid)
+			verbose("(area_knob) Knob deactivated (default handler).", areaid)
 			#realtime('co2v128d200', Now)
 		}
 		return(1)
 	}
 
 	method default_release_handler(areaid, handid, xyz){
-		verbose("Knob released (default handler).")
+		verbose("(area_knob) Knob released (default handler).")
+		#realtime('go2v128d100', Now)
 	}
 
 	method default_select_handler(areaid, handid, xyz){
-		verbose("Area ",areaid," selected. (default handler)");
+		verbose("(area_knob) Area ",areaid," selected. (default handler)");
 		#realtime('go2v128d100', Now)
 	}
 
 
 	method delete(){
-		verbose("delete of knob called.", $);
+		verbose("(area_knob) delete of knob called.");
 		#lock($)
 		#delete replaced areas, too.
 		#This objects should not destroied here?!

@@ -269,6 +269,7 @@ function test_phrases_stage2(){
 	print("== Quit test_phrases")
 	return(0)
 	# Hm, function doesn't return. Play task blockades even if kill(tid) stops it?!
+
 }
 
 # ----------------------------------------------

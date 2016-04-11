@@ -190,6 +190,22 @@ function reduce_channels(ph, nchan){
 ## Some array functions
 #######################
 
+# Create array like python. 
+function range(_start, _stop, _step){
+  if( nargs() < 3 ) _step = 1
+  if( nargs() < 2 ){
+    _stop = _start
+    _start = 0 
+  }
+  ret = []
+  iret = 0
+  while( iret<_stop ){
+    ret[iret] = 0
+    iret += 1
+  }
+  return(ret)
+}
+
 function copy_array(a){
 	b = []
 	for( n in a ){
